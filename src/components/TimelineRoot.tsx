@@ -6,7 +6,6 @@ import {
 } from "../index/filterTimeline";
 import { formatDateForFile, getNow } from "../utils/date";
 import type { TimelineIndexItem } from "../models/TimelineEntry";
-import { describeDatePreset } from "../views/timeline/utils/timelineDates";
 import {
 	resetExpandedFilters,
 	updateDatePreset,
@@ -27,6 +26,11 @@ import { Notice, TFile } from "obsidian";
 import { getErrorMessage } from "../views/timeline/utils/timelineErrors";
 import { useTimelineData } from "../hooks/useTimelineData";
 import { useComposerState } from "../hooks/useComposerState";
+import {
+	describeDatePreset,
+	entryCountText,
+	t,
+} from "../i18n";
 
 interface TimelineRootProps {
 	refreshRevision: number;
@@ -36,6 +40,7 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 	refreshRevision,
 }) => {
 	const { plugin } = usePlugin();
+	const language = plugin.settings.language;
 	const {
 		uiRevision,
 		draftState,
@@ -180,14 +185,14 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 			await plugin.timelineIndex.refreshFile(result.file);
 			await plugin.refreshTimelineViews();
 
-			new Notice(`1 checked in!`);
+			new Notice(t(language, "notice.checkInCreated"));
 			setIsComposerExpanded(false);
 			clearDraft();
 		} catch (error) {
-			new Notice(getErrorMessage(error, "Failed to save check-in."));
+			new Notice(getErrorMessage(error, t(language, "notice.saveFailed")));
 			console.error(error);
 		}
-	}, [draftState, activeDate, today, plugin, clearDraft]);
+	}, [draftState, activeDate, today, plugin, clearDraft, language]);
 
 	const handleTagToggle = useCallback((tag: string) => {
 		setFilters((prev: TimelineFilterState) => ({
@@ -227,19 +232,31 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 		[plugin],
 	);
 
+	const rootStyle = {
+		...(plugin.settings.timelineDotColor
+			? { "--pt-dot-color": plugin.settings.timelineDotColor }
+			: {}),
+		...(plugin.settings.timelineLineColor
+			? { "--pt-line-color": plugin.settings.timelineLineColor }
+			: {}),
+	} as React.CSSProperties;
+
 	return (
-		<div className="personal-timeline-view timeline-react-root">
+		<div
+			className="personal-timeline-view timeline-react-root"
+			style={rootStyle}
+		>
 			<div className="timeline-header">
 				<div className="timeline-header-text">
-					<h2>Personal timeline</h2>
+					<h2>{t(language, "timeline.title")}</h2>
 					<div className="timeline-date-label">
-						{describeDatePreset(filters, activeDate)}
+						{describeDatePreset(language, filters, activeDate)}
 					</div>
 				</div>
 				<button
 					className="timeline-header-button"
 					type="button"
-					aria-label="Create check-in"
+					aria-label={t(language, "timeline.createCheckIn")}
 					onClick={() => setIsComposerExpanded(true)}
 				>
 					+
@@ -248,20 +265,25 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 
 			{malformedEntryCount > 0 && (
 				<div className="timeline-warning-banner">
-					{malformedEntryCount} timeline entr
-					{malformedEntryCount === 1 ? "y has" : "ies have"} invalid
-					metadata and {malformedEntryCount === 1 ? "was" : "were"}{" "}
-					skipped.
+					{t(language, "timeline.invalidMetadata", {
+						count: malformedEntryCount,
+						entryWord: t(
+							language,
+							malformedEntryCount === 1
+								? "timeline.entry"
+								: "timeline.entries",
+						),
+					})}
 				</div>
 			)}
 
 			{isComposerExpanded && (
 				<ComposerPanel
 					rootClassName="timeline-composer"
-					contentPlaceholder="Hãy nhập"
-					tagsPlaceholder="# Add tags"
-					cancelLabel="Cancel"
-					submitLabel="Send"
+					contentPlaceholder={t(language, "timeline.contentPlaceholder")}
+					tagsPlaceholder={t(language, "timeline.tagsPlaceholder")}
+					cancelLabel={t(language, "common.cancel")}
+					submitLabel={t(language, "common.send")}
 					draftState={draftState}
 					recordingState={recordingState}
 					onDraftRefresh={bumpUiRevision}
@@ -279,14 +301,15 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 			<TimelineToolbar
 				filters={filters}
 				today={today}
-				summaryText={`${describeDatePreset(filters, activeDate)} · ${filteredItems.length} entr${filteredItems.length === 1 ? "y" : "ies"}`}
+				language={language}
+				summaryText={`${describeDatePreset(language, filters, activeDate)} · ${entryCountText(language, filteredItems.length)}`}
 				isSearchExpanded={isSearchExpanded}
 				isFilterExpanded={isFilterExpanded}
 				availableTags={availableTags}
 				onSearchToggle={handleSearchToggle}
 				onFilterToggle={handleFilterToggle}
 				onSearchInput={handleSearchInput}
-					onDatePresetChange={handleDatePresetChange}
+				onDatePresetChange={handleDatePresetChange}
 				onTagChange={handleTagChange}
 				onCustomDateChange={handleCustomDateChange}
 				onStartTimeChange={handleStartTimeChange}
@@ -295,20 +318,23 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 
 			<div className="timeline-list-section">
 				<div className="timeline-list-summary">
-					{describeDatePreset(filters, activeDate)} ·{" "}
-					{filteredItems.length} entr
-					{filteredItems.length === 1 ? "y" : "ies"}
+					{describeDatePreset(language, filters, activeDate)} ·{" "}
+					{entryCountText(language, filteredItems.length)}
 				</div>
 
 				{filteredItems.length === 0 ? (
 					<p className="timeline-empty-state">
-						No check-ins match the current filters.
+						{t(language, "timeline.empty")}
 					</p>
 				) : (
-					<TimelineList
-						items={filteredItems}
-						today={today}
+						<TimelineList
+							items={filteredItems}
+							today={today}
+							language={language}
 							selectedTag={filters.selectedTag}
+							renderMarkdown={
+								plugin.settings.renderTimelineContentMarkdown
+							}
 							onTagToggle={handleTagToggle}
 							onOpenMenu={handleOpenMenu}
 							onTaskToggle={(item, taskIndex, checked) => {

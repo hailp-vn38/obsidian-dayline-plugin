@@ -1,11 +1,15 @@
 import React from "react";
+import { t } from "../../i18n";
+import type { TimelineLanguage } from "../../models/TimelineSettings";
 
 interface TimelineSearchProps {
+	language: TimelineLanguage;
 	value: string;
 	onSearchInput: (value: string) => void;
 }
 
 export const TimelineSearch: React.FC<TimelineSearchProps> = ({
+	language,
 	value,
 	onSearchInput,
 }) => {
@@ -14,7 +18,7 @@ export const TimelineSearch: React.FC<TimelineSearchProps> = ({
 			<input
 				type="search"
 				className="timeline-input"
-				placeholder="Search text, content, tags..."
+				placeholder={t(language, "timeline.searchPlaceholder")}
 				value={value}
 				onChange={(e) => onSearchInput(e.target.value)}
 			/>

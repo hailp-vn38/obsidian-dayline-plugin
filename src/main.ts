@@ -8,6 +8,7 @@ import { DEFAULT_SETTINGS, TimelineSettingTab } from "./settings";
 import type { PendingAttachmentInput } from "./storage/attachments";
 import { TimelineRepository } from "./storage/timelineRepository";
 import { TimelineView, VIEW_TYPE_TIMELINE } from "./views/TimelineView";
+import { t } from "./i18n";
 
 interface CreateQuickCheckInInput {
 	content: string;
@@ -33,26 +34,26 @@ export default class PersonalTimelinePlugin extends Plugin {
 		});
 		this.registerVaultEvents();
 
-		this.addRibbonIcon("list-todo", "Open personal timeline", () => {
+		this.addRibbonIcon("list-todo", t(this.settings.language, "timeline.title"), () => {
 			void this.activateTimelineView();
 		});
 		this.addCommand({
 			id: "open-timeline",
-			name: "Open personal timeline",
+			name: t(this.settings.language, "timeline.title"),
 			callback: () => {
 				void this.activateTimelineView();
 			},
 		});
 		this.addCommand({
 			id: "create-quick-check-in",
-			name: "Create quick check-in",
+			name: t(this.settings.language, "timeline.createCheckIn"),
 			callback: () => {
 				this.openQuickCheckInModal();
 			},
 		});
 		this.addCommand({
 			id: "create-quick-check-in-from-selection",
-			name: "Create quick check-in from selection",
+			name: t(this.settings.language, "command.createCheckInFromSelection"),
 			editorCallback: (editor) => {
 				new QuickCheckInModal(this, { initialContent: editor.getSelection() }).open();
 			},
@@ -81,7 +82,7 @@ export default class PersonalTimelinePlugin extends Plugin {
 		if (!leaf) {
 			const rightLeaf = workspace.getRightLeaf(false);
 			if (!rightLeaf) {
-				new Notice("Unable to open the personal timeline view.");
+				new Notice(t(this.settings.language, "notice.openTimelineFailed"));
 				return;
 			}
 

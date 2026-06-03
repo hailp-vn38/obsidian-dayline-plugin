@@ -5,6 +5,7 @@ import { useMarkdown } from "../../hooks/useMarkdown";
 interface ObsidianMarkdownProps {
 	markdown: string;
 	item: TimelineIndexItem;
+	renderMarkdown: boolean;
 	onTaskToggle: (
 		item: TimelineIndexItem,
 		taskIndex: number,
@@ -15,6 +16,7 @@ interface ObsidianMarkdownProps {
 export const ObsidianMarkdown: React.FC<ObsidianMarkdownProps> = ({
 	markdown,
 	item,
+	renderMarkdown,
 	onTaskToggle,
 }) => {
 	const handleRendered = useCallback(
@@ -32,13 +34,17 @@ export const ObsidianMarkdown: React.FC<ObsidianMarkdownProps> = ({
 		[item, onTaskToggle],
 	);
 	const containerRef = useMarkdown({
-		markdown,
+		markdown: renderMarkdown ? markdown : "",
 		sourcePath: item.sourcePath,
 		onRendered: handleRendered,
 	});
 
-	if (!markdown.trim() && item.textPreview) {
-		return <div className="pt-entry-body">{item.textPreview}</div>;
+	const plainText = markdown.trim() || item.textPreview;
+
+	if (!renderMarkdown || !markdown.trim()) {
+		return plainText ? (
+			<div className="pt-entry-body">{plainText}</div>
+		) : null;
 	}
 
 	return (

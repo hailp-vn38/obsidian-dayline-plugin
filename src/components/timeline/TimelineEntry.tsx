@@ -9,6 +9,7 @@ interface TimelineEntryProps {
 	isFirst: boolean;
 	isLast: boolean;
 	selectedTag: string;
+	renderMarkdown: boolean;
 	onTagToggle: (tag: string) => void;
 	onOpenMenu: (event: React.MouseEvent, item: TimelineIndexItem) => void;
 	onTaskToggle: (item: TimelineIndexItem, taskIndex: number, checked: boolean) => void;
@@ -18,6 +19,7 @@ export const TimelineEntry: React.FC<TimelineEntryProps> = ({
 	entry,
 	isFirst,
 	selectedTag,
+	renderMarkdown,
 	onTagToggle,
 	onOpenMenu,
 	onTaskToggle,
@@ -48,6 +50,7 @@ export const TimelineEntry: React.FC<TimelineEntryProps> = ({
 				<ObsidianMarkdown
 					markdown={entry.contentMarkdown}
 					item={entry}
+					renderMarkdown={renderMarkdown}
 					onTaskToggle={onTaskToggle}
 				/>
 

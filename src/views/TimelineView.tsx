@@ -4,6 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import type PersonalTimelinePlugin from "../main";
 import { PluginContext } from "../context/PluginContext";
 import { TimelineRoot } from "../components/TimelineRoot";
+import { t } from "../i18n";
 
 export const VIEW_TYPE_TIMELINE = "personal-timeline-view";
 
@@ -22,7 +23,7 @@ export class TimelineView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return "Personal timeline";
+		return t(this.plugin.settings.language, "timeline.title");
 	}
 
 	getIcon(): string {

@@ -2,12 +2,15 @@ import React from "react";
 import type { TimelineIndexItem } from "../../models/TimelineEntry";
 import { TimelineEntry } from "./TimelineEntry";
 import { groupEntriesByDate } from "../../views/timeline/utils/timelineGrouping";
-import { formatDayHeader } from "../../views/timeline/utils/timelineDates";
+import { dayHeader } from "../../i18n";
+import type { TimelineLanguage } from "../../models/TimelineSettings";
 
 interface TimelineListProps {
 	items: TimelineIndexItem[];
 	today: string;
+	language: TimelineLanguage;
 	selectedTag: string;
+	renderMarkdown: boolean;
 	onTagToggle: (tag: string) => void;
 	onOpenMenu: (event: React.MouseEvent, item: TimelineIndexItem) => void;
 	onTaskToggle: (
@@ -20,7 +23,9 @@ interface TimelineListProps {
 export const TimelineList: React.FC<TimelineListProps> = ({
 	items,
 	today,
+	language,
 	selectedTag,
+	renderMarkdown,
 	onTagToggle,
 	onOpenMenu,
 	onTaskToggle,
@@ -44,6 +49,7 @@ export const TimelineList: React.FC<TimelineListProps> = ({
 							isFirst={isFirst}
 							isLast={isLast}
 							selectedTag={selectedTag}
+							renderMarkdown={renderMarkdown}
 							onTagToggle={onTagToggle}
 							onOpenMenu={onOpenMenu}
 							onTaskToggle={onTaskToggle}
@@ -54,7 +60,7 @@ export const TimelineList: React.FC<TimelineListProps> = ({
 				return (
 					<div key={dateStr} className="pt-day-group">
 						<div className="pt-day-header">
-							{formatDayHeader(dateStr, today)}
+							{dayHeader(language, dateStr, today)}
 						</div>
 						<div className="pt-timeline">
 							{dayEntries}

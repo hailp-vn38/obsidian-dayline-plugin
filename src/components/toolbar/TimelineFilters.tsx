@@ -3,10 +3,13 @@ import type {
 	TimelineDatePreset,
 	TimelineFilterState,
 } from "../../index/filterTimeline";
+import { datePresetLabel, t } from "../../i18n";
+import type { TimelineLanguage } from "../../models/TimelineSettings";
 
 interface TimelineFiltersProps {
 	filters: TimelineFilterState;
 	today: string;
+	language: TimelineLanguage;
 	availableTags: string[];
 	onDatePresetChange: (preset: TimelineDatePreset) => void;
 	onTagChange: (tag: string) => void;
@@ -26,10 +29,18 @@ export const TimelineFilters: React.FC<TimelineFiltersProps> = (props) => {
 					props.onDatePresetChange(e.target.value as TimelineDatePreset)
 				}
 			>
-				<option value="today">Today</option>
-				<option value="yesterday">Yesterday</option>
-				<option value="this-week">This week</option>
-				<option value="custom">Custom date</option>
+				<option value="today">
+					{datePresetLabel(props.language, "today")}
+				</option>
+				<option value="yesterday">
+					{datePresetLabel(props.language, "yesterday")}
+				</option>
+				<option value="this-week">
+					{datePresetLabel(props.language, "this-week")}
+				</option>
+				<option value="custom">
+					{datePresetLabel(props.language, "custom")}
+				</option>
 			</select>
 
 			<select
@@ -37,7 +48,7 @@ export const TimelineFilters: React.FC<TimelineFiltersProps> = (props) => {
 				value={props.filters.selectedTag}
 				onChange={(e) => props.onTagChange(e.target.value)}
 			>
-				<option value="">All tags</option>
+				<option value="">{t(props.language, "timeline.allTags")}</option>
 				{props.availableTags.map((tag) => (
 					<option key={tag} value={tag}>
 						#{tag}

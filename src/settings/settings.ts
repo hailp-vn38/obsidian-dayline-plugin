@@ -1,6 +1,7 @@
 import type { TimelinePluginSettings } from "../models/TimelineSettings";
 
 export const DEFAULT_SETTINGS: TimelinePluginSettings = {
+	language: "en",
 	timelineFolder: "Timeline",
 	attachmentFolder: "Timeline Attachments",
 	fileOrganization: "year-month",

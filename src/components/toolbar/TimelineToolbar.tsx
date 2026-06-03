@@ -3,12 +3,15 @@ import type {
 	TimelineDatePreset,
 	TimelineFilterState,
 } from "../../index/filterTimeline";
+import { t } from "../../i18n";
+import type { TimelineLanguage } from "../../models/TimelineSettings";
 import { TimelineFilters } from "./TimelineFilters";
 import { TimelineSearch } from "./TimelineSearch";
 
 interface TimelineToolbarProps {
 	filters: TimelineFilterState;
 	today: string;
+	language: TimelineLanguage;
 	summaryText: string;
 	isSearchExpanded: boolean;
 	isFilterExpanded: boolean;
@@ -34,26 +37,31 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = (props) => {
 				<button
 					className="timeline-filter-toggle"
 					type="button"
-					aria-label="Toggle search"
+					aria-label={t(props.language, "common.search")}
 					aria-pressed={props.isSearchExpanded}
 					onClick={props.onSearchToggle}
 				>
-					{props.isSearchExpanded ? "Close search" : "Search"}
+					{props.isSearchExpanded
+						? t(props.language, "common.closeSearch")
+						: t(props.language, "common.search")}
 				</button>
 				<button
 					className="timeline-filter-toggle"
 					type="button"
-					aria-label="Toggle filter"
+					aria-label={t(props.language, "common.filter")}
 					aria-pressed={props.isFilterExpanded}
 					onClick={props.onFilterToggle}
 				>
-					{props.isFilterExpanded ? "Close filter" : "Filter"}
+					{props.isFilterExpanded
+						? t(props.language, "common.closeFilter")
+						: t(props.language, "common.filter")}
 				</button>
 				</div>
 			</div>
 
 			{props.isSearchExpanded && (
 				<TimelineSearch
+					language={props.language}
 					value={props.filters.searchTerm}
 					onSearchInput={props.onSearchInput}
 				/>
@@ -63,6 +71,7 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = (props) => {
 				<TimelineFilters
 					filters={props.filters}
 					today={props.today}
+					language={props.language}
 					availableTags={props.availableTags}
 					onDatePresetChange={props.onDatePresetChange}
 					onTagChange={props.onTagChange}

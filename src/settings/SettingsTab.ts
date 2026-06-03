@@ -4,9 +4,11 @@ import type PersonalTimelinePlugin from "../main";
 import type {
 	TimelineDefaultView,
 	TimelineFileOrganization,
+	TimelineLanguage,
 	TimelineMetadataReadingViewMode,
 	TimelineTimeFormat,
 } from "../models/TimelineSettings";
+import { LANGUAGE_OPTIONS, t } from "../i18n";
 
 const FILE_ORGANIZATION_OPTIONS: Record<TimelineFileOrganization, string> = {
 	flat: "Flat",
@@ -41,12 +43,32 @@ export class TimelineSettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
+		const language = this.plugin.settings.language;
 
-		new Setting(containerEl).setName("Personal timeline").setHeading();
+		new Setting(containerEl).setName(t(language, "settings.title")).setHeading();
 
 		new Setting(containerEl)
-			.setName("Timeline folder")
-			.setDesc("Folder used to store daily timeline Markdown files.")
+			.setName(t(language, "settings.language.name"))
+			.setDesc(t(language, "settings.language.desc"))
+			.addDropdown((dropdown) => {
+				for (const [value, label] of Object.entries(LANGUAGE_OPTIONS)) {
+					dropdown.addOption(value, label);
+				}
+
+				dropdown
+					.setValue(this.plugin.settings.language)
+					.onChange(async (value: TimelineLanguage) => {
+						this.plugin.settings.language = value;
+						await this.plugin.saveSettings();
+						this.display();
+					});
+			});
+
+		new Setting(containerEl).setName(t(language, "settings.storage.heading")).setHeading();
+
+		new Setting(containerEl)
+			.setName(t(language, "settings.timelineFolder.name"))
+			.setDesc(t(language, "settings.timelineFolder.desc"))
 			.addText((text) =>
 				text
 					.setPlaceholder("Timeline")
@@ -58,8 +80,8 @@ export class TimelineSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Attachment folder")
-			.setDesc("Folder used to store image, audio, and file attachments.")
+			.setName(t(language, "settings.attachmentFolder.name"))
+			.setDesc(t(language, "settings.attachmentFolder.desc"))
 			.addText((text) =>
 					text
 						.setPlaceholder("Timeline attachments")
@@ -72,8 +94,8 @@ export class TimelineSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("File organization")
-			.setDesc("Choose how timeline files are grouped inside the vault.")
+			.setName(t(language, "settings.fileOrganization.name"))
+			.setDesc(t(language, "settings.fileOrganization.desc"))
 			.addDropdown((dropdown) => {
 				for (const [value, label] of Object.entries(FILE_ORGANIZATION_OPTIONS)) {
 					dropdown.addOption(value, label);
@@ -88,8 +110,8 @@ export class TimelineSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("Default view")
-			.setDesc("Choose which day opens when the timeline view is shown.")
+			.setName(t(language, "settings.defaultView.name"))
+			.setDesc(t(language, "settings.defaultView.desc"))
 			.addDropdown((dropdown) => {
 				for (const [value, label] of Object.entries(DEFAULT_VIEW_OPTIONS)) {
 					dropdown.addOption(value, label);
@@ -104,8 +126,8 @@ export class TimelineSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("Time format")
-			.setDesc("Choose how times should be displayed in the plugin UI.")
+			.setName(t(language, "settings.timeFormat.name"))
+			.setDesc(t(language, "settings.timeFormat.desc"))
 			.addDropdown((dropdown) => {
 				for (const [value, label] of Object.entries(TIME_FORMAT_OPTIONS)) {
 					dropdown.addOption(value, label);
@@ -119,9 +141,67 @@ export class TimelineSettingTab extends PluginSettingTab {
 					});
 			});
 
+		new Setting(containerEl).setName(t(language, "settings.timelineView.heading")).setHeading();
+
 		new Setting(containerEl)
-			.setName("Show timeline metadata in reading view")
-			.setDesc("Render hidden timeline JSON metadata inside Markdown reading view.")
+			.setName(t(language, "settings.renderMarkdown.name"))
+			.setDesc(t(language, "settings.renderMarkdown.desc"))
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.renderTimelineContentMarkdown)
+					.onChange(async (value) => {
+						this.plugin.settings.renderTimelineContentMarkdown = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName(t(language, "settings.dotColor.name"))
+			.setDesc(t(language, "settings.dotColor.desc"))
+			.addColorPicker((picker) =>
+				picker
+					.setValue(this.plugin.settings.timelineDotColor || "#000000")
+					.onChange(async (value) => {
+						this.plugin.settings.timelineDotColor = value;
+						await this.plugin.saveSettings();
+					}),
+			)
+			.addButton((button) =>
+				button
+					.setButtonText(t(language, "common.reset"))
+					.onClick(async () => {
+						this.plugin.settings.timelineDotColor = "";
+						await this.plugin.saveSettings();
+						this.display();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName(t(language, "settings.lineColor.name"))
+			.setDesc(t(language, "settings.lineColor.desc"))
+			.addColorPicker((picker) =>
+				picker
+					.setValue(this.plugin.settings.timelineLineColor || "#000000")
+					.onChange(async (value) => {
+						this.plugin.settings.timelineLineColor = value;
+						await this.plugin.saveSettings();
+					}),
+			)
+			.addButton((button) =>
+				button
+					.setButtonText(t(language, "common.reset"))
+					.onClick(async () => {
+						this.plugin.settings.timelineLineColor = "";
+						await this.plugin.saveSettings();
+						this.display();
+					}),
+			);
+
+		new Setting(containerEl).setName(t(language, "settings.readingView.heading")).setHeading();
+
+		new Setting(containerEl)
+			.setName(t(language, "settings.showMetadata.name"))
+			.setDesc(t(language, "settings.showMetadata.desc"))
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.showMetadataInReadingView)
@@ -132,8 +212,8 @@ export class TimelineSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Metadata reading view mode")
-			.setDesc("Choose how metadata is displayed in Markdown reading view.")
+			.setName(t(language, "settings.metadataMode.name"))
+			.setDesc(t(language, "settings.metadataMode.desc"))
 			.addDropdown((dropdown) => {
 				for (const [value, label] of Object.entries(METADATA_READING_VIEW_OPTIONS)) {
 					dropdown.addOption(value, label);
