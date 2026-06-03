@@ -46,6 +46,8 @@ type TranslationKey =
 	| "timeline.customDate"
 	| "timeline.allTags"
 	| "timeline.searchPlaceholder"
+	| "timeline.startDate"
+	| "timeline.endDate"
 	| "timeline.entry"
 	| "timeline.entries"
 	| "timeline.invalidMetadata"
@@ -102,6 +104,8 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"timeline.customDate": "Custom date",
 		"timeline.allTags": "All tags",
 		"timeline.searchPlaceholder": "Search text, content, tags...",
+		"timeline.startDate": "Start date",
+		"timeline.endDate": "End date",
 		"timeline.entry": "entry",
 		"timeline.entries": "entries",
 		"timeline.invalidMetadata": "{count} timeline {entryWord} have invalid metadata and were skipped.",
@@ -157,6 +161,8 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"timeline.customDate": "Ngày tùy chọn",
 		"timeline.allTags": "Tất cả tag",
 		"timeline.searchPlaceholder": "Tìm nội dung, văn bản, tag...",
+		"timeline.startDate": "Ngày bắt đầu",
+		"timeline.endDate": "Ngày kết thúc",
 		"timeline.entry": "mục",
 		"timeline.entries": "mục",
 		"timeline.invalidMetadata": "{count} {entryWord} timeline có metadata không hợp lệ và đã bị bỏ qua.",

@@ -58,6 +58,7 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 		endTime: "",
 		datePreset: "today",
 		customDate: formatDateForFile(getNow()),
+		customEndDate: formatDateForFile(getNow()),
 	});
 
 	const [isComposerExpanded, setIsComposerExpanded] = useState(false);
@@ -123,6 +124,13 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 		setFilters((prev: TimelineFilterState) => ({
 			...prev,
 			customDate: value,
+		}));
+	}, []);
+
+	const handleCustomEndDateChange = useCallback((value: string) => {
+		setFilters((prev: TimelineFilterState) => ({
+			...prev,
+			customEndDate: value,
 		}));
 	}, []);
 
@@ -312,6 +320,7 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 				onDatePresetChange={handleDatePresetChange}
 				onTagChange={handleTagChange}
 				onCustomDateChange={handleCustomDateChange}
+				onCustomEndDateChange={handleCustomEndDateChange}
 				onStartTimeChange={handleStartTimeChange}
 				onEndTimeChange={handleEndTimeChange}
 			/>

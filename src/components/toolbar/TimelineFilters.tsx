@@ -14,6 +14,7 @@ interface TimelineFiltersProps {
 	onDatePresetChange: (preset: TimelineDatePreset) => void;
 	onTagChange: (tag: string) => void;
 	onCustomDateChange: (value: string) => void;
+	onCustomEndDateChange: (value: string) => void;
 	onStartTimeChange: (value: string) => void;
 	onEndTimeChange: (value: string) => void;
 }
@@ -57,33 +58,30 @@ export const TimelineFilters: React.FC<TimelineFiltersProps> = (props) => {
 			</select>
 		</div>
 
-		<div className="timeline-filter-advanced">
-			{props.filters.datePreset === "custom" && (
+		{props.filters.datePreset === "custom" && (
+			<div className="timeline-filter-advanced">
+				<div className="timeline-filter-date-row">
 				<input
 					className="timeline-input"
 					type="date"
+					aria-label={t(props.language, "timeline.startDate")}
 					value={props.filters.customDate}
 					onChange={(e) =>
-						props.onCustomDateChange(e.target.value || props.today)
+						props.onCustomDateChange(e.target.value)
 					}
 				/>
-			)}
-
-			<div className="timeline-filter-time-row">
 				<input
 					className="timeline-input"
-					type="time"
-					value={props.filters.startTime}
-					onChange={(e) => props.onStartTimeChange(e.target.value)}
+					type="date"
+					aria-label={t(props.language, "timeline.endDate")}
+					value={props.filters.customEndDate}
+					onChange={(e) =>
+						props.onCustomEndDateChange(e.target.value)
+					}
 				/>
-				<input
-					className="timeline-input"
-					type="time"
-					value={props.filters.endTime}
-					onChange={(e) => props.onEndTimeChange(e.target.value)}
-				/>
+				</div>
 			</div>
-		</div>
+		)}
 		</>
 	);
 };

@@ -9,6 +9,7 @@ export interface TimelineFilterState {
 	endTime: string;
 	datePreset: TimelineDatePreset;
 	customDate: string;
+	customEndDate: string;
 }
 
 export function filterTimeline(
@@ -43,10 +44,37 @@ function matchesDatePreset(
 		case "this-week":
 			return weekDates.has(item.date);
 		case "custom":
-			return !filters.customDate || item.date === filters.customDate;
+			return matchesCustomDateRange(
+				item.date,
+				filters.customDate,
+				filters.customEndDate,
+			);
 		default:
 			return true;
 	}
+}
+
+function matchesCustomDateRange(
+	itemDate: string,
+	startDate: string,
+	endDate: string,
+): boolean {
+	if (!startDate && !endDate) {
+		return true;
+	}
+
+	const rangeStart = startDate && endDate && startDate > endDate ? endDate : startDate;
+	const rangeEnd = startDate && endDate && startDate > endDate ? startDate : endDate;
+
+	if (rangeStart && itemDate < rangeStart) {
+		return false;
+	}
+
+	if (rangeEnd && itemDate > rangeEnd) {
+		return false;
+	}
+
+	return true;
 }
 
 function matchesTag(item: TimelineIndexItem, selectedTag: string): boolean {

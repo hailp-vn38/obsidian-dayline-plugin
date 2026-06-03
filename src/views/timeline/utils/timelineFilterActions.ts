@@ -9,6 +9,7 @@ export function resetExpandedFilters(
 ): void {
 	filters.datePreset = "today";
 	filters.customDate = today;
+	filters.customEndDate = today;
 	filters.selectedTag = "";
 	filters.startTime = "";
 	filters.endTime = "";
@@ -22,5 +23,12 @@ export function updateDatePreset(
 	filters.datePreset = preset;
 	if (preset === "today") {
 		filters.customDate = today;
+		filters.customEndDate = today;
+	}
+	if (preset === "custom" && !filters.customDate) {
+		filters.customDate = today;
+	}
+	if (preset === "custom" && !filters.customEndDate) {
+		filters.customEndDate = filters.customDate || today;
 	}
 }

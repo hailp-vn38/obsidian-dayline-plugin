@@ -35,7 +35,13 @@ export function useTimelineData({
 	);
 
 	const activeDate = useMemo(() => {
-		if (filters.datePreset === "custom") return filters.customDate;
+		if (filters.datePreset === "custom") {
+			if (!filters.customDate) return filters.customEndDate;
+			if (!filters.customEndDate || filters.customDate === filters.customEndDate) {
+				return filters.customDate;
+			}
+			return `${filters.customDate} - ${filters.customEndDate}`;
+		}
 		if (filters.datePreset === "today") return today;
 		if (filters.datePreset === "yesterday") return shiftDate(today, -1);
 		if (filters.datePreset === "this-week") return today;
