@@ -60,7 +60,7 @@ type TranslationKey =
 
 const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 	en: {
-		"settings.title": "Personal timeline",
+		"settings.title": "Dayline",
 		"settings.language.name": "Language",
 		"settings.language.desc": "Choose the plugin display language.",
 		"settings.storage.heading": "Storage",
@@ -93,7 +93,7 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"common.filter": "Filter",
 		"common.closeSearch": "Close search",
 		"common.closeFilter": "Close filter",
-		"timeline.title": "Personal timeline",
+		"timeline.title": "Dayline",
 		"timeline.createCheckIn": "Create check-in",
 		"timeline.contentPlaceholder": "Write something",
 		"timeline.tagsPlaceholder": "# Add tags",
@@ -113,11 +113,11 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"notice.saveFailed": "Failed to save check-in.",
 		"notice.audioUnsupported": "Audio recording not supported",
 		"notice.microphoneFailed": "Failed to access microphone",
-		"notice.openTimelineFailed": "Unable to open the personal timeline view.",
+		"notice.openTimelineFailed": "Unable to open Dayline.",
 		"command.createCheckInFromSelection": "Create quick check-in from selection",
 	},
 	vi: {
-		"settings.title": "Dòng thời gian cá nhân",
+		"settings.title": "Dayline",
 		"settings.language.name": "Ngôn ngữ",
 		"settings.language.desc": "Chọn ngôn ngữ hiển thị của plugin.",
 		"settings.storage.heading": "Lưu trữ",
@@ -150,7 +150,7 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"common.filter": "Bộ lọc",
 		"common.closeSearch": "Đóng tìm kiếm",
 		"common.closeFilter": "Đóng bộ lọc",
-		"timeline.title": "Dòng thời gian cá nhân",
+		"timeline.title": "Dayline",
 		"timeline.createCheckIn": "Tạo check-in",
 		"timeline.contentPlaceholder": "Viết nội dung",
 		"timeline.tagsPlaceholder": "# Thêm tag",
@@ -170,7 +170,7 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"notice.saveFailed": "Không thể lưu check-in.",
 		"notice.audioUnsupported": "Thiết bị không hỗ trợ ghi âm",
 		"notice.microphoneFailed": "Không thể truy cập microphone",
-		"notice.openTimelineFailed": "Không thể mở timeline cá nhân.",
+		"notice.openTimelineFailed": "Không thể mở Dayline.",
 		"command.createCheckInFromSelection": "Tạo check-in nhanh từ vùng chọn",
 	},
 };

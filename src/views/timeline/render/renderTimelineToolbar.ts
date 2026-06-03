@@ -16,8 +16,6 @@ interface RenderTimelineToolbarOptions {
 	onDatePresetChange: (preset: TimelineDatePreset) => void;
 	onTagChange: (tag: string) => void;
 	onCustomDateChange: (value: string) => void;
-	onStartTimeChange: (value: string) => void;
-	onEndTimeChange: (value: string) => void;
 }
 
 export function renderTimelineToolbar(
@@ -101,23 +99,6 @@ export function renderTimelineToolbar(
 			options.onCustomDateChange(customDateInput.value || options.today);
 		});
 	}
-
-	const timeRow = advancedFilters.createDiv({
-		cls: "timeline-filter-time-row",
-	});
-	const startTimeInput = timeRow.createEl("input", { type: "time" });
-	startTimeInput.addClass("timeline-input");
-	startTimeInput.value = options.filters.startTime;
-	startTimeInput.addEventListener("change", () => {
-		options.onStartTimeChange(startTimeInput.value);
-	});
-
-	const endTimeInput = timeRow.createEl("input", { type: "time" });
-	endTimeInput.addClass("timeline-input");
-	endTimeInput.value = options.filters.endTime;
-	endTimeInput.addEventListener("change", () => {
-		options.onEndTimeChange(endTimeInput.value);
-	});
 }
 
 function addOption(

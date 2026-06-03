@@ -48,14 +48,13 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 		bumpUiRevision,
 		clearDraft,
 		addFiles,
+		pasteImages,
 		toggleRecording,
 	} = useComposerState();
 
 	const [filters, setFilters] = useState<TimelineFilterState>({
 		searchTerm: "",
 		selectedTag: "",
-		startTime: "",
-		endTime: "",
 		datePreset: "today",
 		customDate: formatDateForFile(getNow()),
 		customEndDate: formatDateForFile(getNow()),
@@ -134,20 +133,6 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 		}));
 	}, []);
 
-	const handleStartTimeChange = useCallback((value: string) => {
-		setFilters((prev: TimelineFilterState) => ({
-			...prev,
-			startTime: value,
-		}));
-	}, []);
-
-	const handleEndTimeChange = useCallback((value: string) => {
-		setFilters((prev: TimelineFilterState) => ({
-			...prev,
-			endTime: value,
-		}));
-	}, []);
-
 	const handleCommitTagDraft = useCallback(() => {
 		return commitComposerTagDraft(draftState);
 	}, [draftState]);
@@ -157,6 +142,13 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 			removeComposerTag(draftState, tag);
 		},
 		[draftState],
+	);
+
+	const handlePasteComposer = useCallback(
+		async (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+			await pasteImages(event.nativeEvent);
+		},
+		[pasteImages],
 	);
 
 	const handleCancelComposer = useCallback(() => {
@@ -298,6 +290,7 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 					onCommitTagDraft={handleCommitTagDraft}
 					onRemoveTag={handleRemoveTag}
 					onAddFiles={addFiles}
+					onPaste={handlePasteComposer}
 					onToggleRecording={() => {
 						void toggleRecording();
 					}}
@@ -321,8 +314,6 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 				onTagChange={handleTagChange}
 				onCustomDateChange={handleCustomDateChange}
 				onCustomEndDateChange={handleCustomEndDateChange}
-				onStartTimeChange={handleStartTimeChange}
-				onEndTimeChange={handleEndTimeChange}
 			/>
 
 			<div className="timeline-list-section">

@@ -5,6 +5,7 @@ import type { TimelineAttachment } from "../../../models/TimelineAttachment";
 interface RenderTimelineEntryAttachmentsOptions {
 	getFileByPath: (path: string) => TFile | null;
 	getResourcePath: (file: TFile) => string;
+	onImageClick?: (attachment: TimelineAttachment, file: TFile) => void;
 }
 
 export function renderTimelineEntryAttachments(
@@ -45,13 +46,19 @@ export function renderTimelineEntryAttachments(
 			cls: "pt-entry-attachment-row pt-entry-image-row",
 		});
 		imageAttachments.forEach(({ attachment, file }) => {
-			imageRow.createEl("img", {
+			const image = imageRow.createEl("img", {
 				cls: "timeline-attachment-image pt-entry-image-thumb",
 				attr: {
 					src: options.getResourcePath(file),
 					alt: attachment.name ?? file.name,
 				},
 			});
+			if (options.onImageClick) {
+				image.addClass("is-clickable");
+				image.addEventListener("click", () => {
+					options.onImageClick?.(attachment, file);
+				});
+			}
 		});
 	}
 

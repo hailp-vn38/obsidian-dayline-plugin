@@ -5,8 +5,6 @@ export type TimelineDatePreset = "today" | "yesterday" | "this-week" | "custom";
 export interface TimelineFilterState {
 	searchTerm: string;
 	selectedTag: string;
-	startTime: string;
-	endTime: string;
 	datePreset: TimelineDatePreset;
 	customDate: string;
 	customEndDate: string;
@@ -24,7 +22,6 @@ export function filterTimeline(
 	return items
 		.filter((item) => matchesDatePreset(item, filters, today, yesterday, weekDates))
 		.filter((item) => matchesTag(item, filters.selectedTag))
-		.filter((item) => matchesTimeRange(item, filters.startTime, filters.endTime))
 		.filter((item) => matchesSearch(item, searchQuery))
 		.sort((left, right) => right.createdAt.localeCompare(left.createdAt));
 }
@@ -83,18 +80,6 @@ function matchesTag(item: TimelineIndexItem, selectedTag: string): boolean {
 	}
 
 	return item.tags.includes(selectedTag);
-}
-
-function matchesTimeRange(item: TimelineIndexItem, startTime: string, endTime: string): boolean {
-	if (startTime && item.time < startTime) {
-		return false;
-	}
-
-	if (endTime && item.time > endTime) {
-		return false;
-	}
-
-	return true;
 }
 
 function matchesSearch(item: TimelineIndexItem, searchQuery: string): boolean {

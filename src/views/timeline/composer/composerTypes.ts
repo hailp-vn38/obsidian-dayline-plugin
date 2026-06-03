@@ -16,4 +16,6 @@ export interface ComposerRecordingState {
 	mediaRecorder: MediaRecorder | null;
 	audioChunks: Blob[];
 	isRecording: boolean;
+	cancelRecordingStart?: boolean;
+	discardRecording?: boolean;
 }

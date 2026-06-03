@@ -4,6 +4,7 @@ import type PersonalTimelinePlugin from "../main";
 import { canCreateQuickCheckIn } from "../utils/tags";
 import {
 	appendPendingFiles,
+	appendPastedImages,
 	mapPendingAttachmentsToInputs,
 	releasePendingAttachmentPreviews,
 } from "../views/timeline/composer/composerAttachments";
@@ -79,6 +80,9 @@ export class QuickCheckInModal extends Modal {
 			onAddFiles: async (files, typeHint) => {
 				await this.addPendingFiles(files, typeHint);
 			},
+			onPaste: async (event) => {
+				await this.pasteImages(event);
+			},
 			onToggleRecording: () => {
 				if (this.recordingState.isRecording) {
 					this.stopRecording();
@@ -137,6 +141,16 @@ export class QuickCheckInModal extends Modal {
 		this.redraw();
 	}
 
+	private async pasteImages(event: ClipboardEvent): Promise<void> {
+		const hasPastedImages = await appendPastedImages(
+			this.draftState.attachments,
+			event,
+		);
+		if (hasPastedImages) {
+			this.redraw();
+		}
+	}
+
 	private async startRecording(): Promise<void> {
 		await startComposerRecording({
 			state: this.recordingState,
@@ -146,8 +160,8 @@ export class QuickCheckInModal extends Modal {
 			onError: () => {
 				new Notice("Unable to start audio recording.");
 			},
-			onReady: async (file, stream) => {
-				await this.finishRecording(file, stream);
+			onReady: async (file) => {
+				await this.finishRecording(file);
 			},
 			onStateChanged: async () => {
 				this.redraw();
@@ -159,12 +173,8 @@ export class QuickCheckInModal extends Modal {
 		stopComposerRecording(this.recordingState);
 	}
 
-	private async finishRecording(file: File, stream: MediaStream): Promise<void> {
+	private async finishRecording(file: File): Promise<void> {
 		await appendPendingFiles(this.draftState.attachments, [file], "audio");
-		stream.getTracks().forEach((track) => track.stop());
-		this.recordingState.mediaRecorder = null;
-		this.recordingState.audioChunks = [];
-		this.recordingState.isRecording = false;
 		this.redraw();
 	}
 

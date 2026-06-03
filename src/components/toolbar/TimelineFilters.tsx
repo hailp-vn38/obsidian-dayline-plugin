@@ -15,8 +15,6 @@ interface TimelineFiltersProps {
 	onTagChange: (tag: string) => void;
 	onCustomDateChange: (value: string) => void;
 	onCustomEndDateChange: (value: string) => void;
-	onStartTimeChange: (value: string) => void;
-	onEndTimeChange: (value: string) => void;
 }
 
 export const TimelineFilters: React.FC<TimelineFiltersProps> = (props) => {

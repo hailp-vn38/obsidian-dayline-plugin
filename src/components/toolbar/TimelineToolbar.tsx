@@ -23,8 +23,6 @@ interface TimelineToolbarProps {
 	onTagChange: (tag: string) => void;
 	onCustomDateChange: (value: string) => void;
 	onCustomEndDateChange: (value: string) => void;
-	onStartTimeChange: (value: string) => void;
-	onEndTimeChange: (value: string) => void;
 }
 
 export const TimelineToolbar: React.FC<TimelineToolbarProps> = (props) => {
@@ -78,8 +76,6 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = (props) => {
 					onTagChange={props.onTagChange}
 					onCustomDateChange={props.onCustomDateChange}
 					onCustomEndDateChange={props.onCustomEndDateChange}
-					onStartTimeChange={props.onStartTimeChange}
-					onEndTimeChange={props.onEndTimeChange}
 				/>
 			)}
 		</div>

@@ -3,6 +3,7 @@ import { TFile } from "obsidian";
 import { renderTimelineEntryAttachments } from "../../views/timeline/render/renderTimelineEntryAttachments";
 import { usePlugin } from "../../context/PluginContext";
 import type { TimelineAttachment } from "../../models/TimelineAttachment";
+import { ImagePreviewModal } from "../../modals/ImagePreviewModal";
 
 interface TimelineAttachmentsProps {
 	attachments: TimelineAttachment[];
@@ -25,6 +26,14 @@ export const TimelineAttachments: React.FC<TimelineAttachmentsProps> = ({
 				},
 				getResourcePath: (file: TFile) => {
 					return plugin.app.vault.getResourcePath(file);
+				},
+				onImageClick: (attachment, file) => {
+					new ImagePreviewModal(
+						plugin.app,
+						file,
+						plugin.app.vault.getResourcePath(file),
+						attachment.name ?? file.name,
+					).open();
 				},
 			});
 		}

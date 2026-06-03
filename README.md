@@ -1,6 +1,6 @@
-# Personal Timeline Check-in
+# Dayline
 
-Personal Timeline Check-in is an Obsidian plugin for capturing short daily check-ins in a right sidebar timeline. It stores data locally in your vault as markdown-first timeline files, with attachment files saved separately in the vault.
+Dayline is an Obsidian plugin for capturing short daily check-ins in a right sidebar timeline. It stores data locally in your vault as markdown-first timeline files, with attachment files saved separately in the vault.
 
 ## What it does
 
@@ -52,7 +52,7 @@ Slept a bit less than usual, but energy is still decent.
 3. Build once:
    `npm run build`
 4. Reload Obsidian.
-5. Enable **Personal Timeline Check-in** in **Settings → Community plugins**.
+5. Enable **Dayline** in **Settings → Community plugins**.
 
 ## Development
 

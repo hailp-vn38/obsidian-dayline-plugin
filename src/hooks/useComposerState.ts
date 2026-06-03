@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Notice } from "obsidian";
 
 import type {
@@ -8,12 +8,14 @@ import type {
 } from "../views/timeline/composer/composerTypes";
 import {
 	appendPendingFiles,
+	appendPastedImages,
 	releasePendingAttachmentPreviews,
 } from "../views/timeline/composer/composerAttachments";
 import { clearComposerDraft } from "../views/timeline/composer/composerDraft";
 import {
 	startComposerRecording,
 	stopComposerRecording,
+	stopComposerRecordingTracks,
 } from "../views/timeline/composer/composerRecording";
 
 export function useComposerState() {
@@ -35,10 +37,11 @@ export function useComposerState() {
 	}, []);
 
 	const clearDraft = useCallback(() => {
+		stopComposerRecordingTracks(recordingState);
 		clearComposerDraft(draftState);
 		releasePendingAttachmentPreviews(draftState.attachments);
 		bumpUiRevision();
-	}, [draftState, bumpUiRevision]);
+	}, [recordingState, draftState, bumpUiRevision]);
 
 	const addFiles = useCallback(
 		async (files: FileList | File[], typeHint: ComposerFileTypeHint) => {
@@ -48,6 +51,19 @@ export function useComposerState() {
 				typeHint,
 			);
 			bumpUiRevision();
+		},
+		[draftState.attachments, bumpUiRevision],
+	);
+
+	const pasteImages = useCallback(
+		async (event: ClipboardEvent) => {
+			const hasPastedImages = await appendPastedImages(
+				draftState.attachments,
+				event,
+			);
+			if (hasPastedImages) {
+				bumpUiRevision();
+			}
 		},
 		[draftState.attachments, bumpUiRevision],
 	);
@@ -77,6 +93,12 @@ export function useComposerState() {
 		});
 	}, [recordingState, draftState.attachments, bumpUiRevision]);
 
+	useEffect(() => {
+		return () => {
+			stopComposerRecordingTracks(recordingState);
+		};
+	}, [recordingState]);
+
 	return {
 		uiRevision,
 		draftState,
@@ -84,6 +106,7 @@ export function useComposerState() {
 		bumpUiRevision,
 		clearDraft,
 		addFiles,
+		pasteImages,
 		toggleRecording,
 	};
 }
