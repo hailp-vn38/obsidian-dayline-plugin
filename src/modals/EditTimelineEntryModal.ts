@@ -1,13 +1,13 @@
 import { Modal, Notice, Setting, TextComponent } from "obsidian";
 
-import type PersonalTimelinePlugin from "../../../main";
-import type { ParsedTimelineEntry } from "../../../models/TimelineEntry";
+import type PersonalTimelinePlugin from "../main";
+import type { ParsedTimelineEntry } from "../models/TimelineEntry";
 import {
 	extractEditableMarkdownContent,
 	type TimelineEntryEditInput,
-} from "../../../storage/timelineRepository";
-import { parseTags } from "../../../utils/tags";
-import { getErrorMessage } from "../utils/timelineErrors";
+} from "../storage/timelineRepository";
+import { parseTags } from "../utils/tags";
+import { getErrorMessage } from "../views/timeline/utils/timelineErrors";
 
 export class EditTimelineEntryModal extends Modal {
 	private timeValue: string;

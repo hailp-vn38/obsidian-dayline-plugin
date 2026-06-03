@@ -9,6 +9,9 @@ export interface TimelinePluginSettings {
 	fileOrganization: TimelineFileOrganization;
 	defaultView: TimelineDefaultView;
 	timeFormat: TimelineTimeFormat;
+	renderTimelineContentMarkdown: boolean;
+	timelineDotColor: string;
+	timelineLineColor: string;
 	showMetadataInReadingView: boolean;
 	metadataReadingViewMode: TimelineMetadataReadingViewMode;
 }

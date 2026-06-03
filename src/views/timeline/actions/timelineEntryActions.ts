@@ -2,8 +2,8 @@ import { Notice, TFile } from "obsidian";
 
 import type PersonalTimelinePlugin from "../../../main";
 import type { TimelineIndexItem } from "../../../models/TimelineEntry";
-import { confirmAction } from "../modals/ConfirmTimelineActionModal";
-import { EditTimelineEntryModal } from "../modals/EditTimelineEntryModal";
+import { confirmAction } from "../../../modals/ConfirmTimelineActionModal";
+import { EditTimelineEntryModal } from "../../../modals/EditTimelineEntryModal";
 import { getErrorMessage } from "../utils/timelineErrors";
 
 interface CreateTimelineEntryActionsOptions {

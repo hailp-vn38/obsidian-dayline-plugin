@@ -1,4 +1,4 @@
-import { Modal, Notice, setIcon } from "obsidian";
+import { Modal, Notice } from "obsidian";
 
 import type PersonalTimelinePlugin from "../main";
 import { canCreateQuickCheckIn } from "../utils/tags";
@@ -6,7 +6,6 @@ import {
 	appendPendingFiles,
 	mapPendingAttachmentsToInputs,
 	releasePendingAttachmentPreviews,
-	removePendingAttachment,
 } from "../views/timeline/composer/composerAttachments";
 import {
 	clearComposerDraft,

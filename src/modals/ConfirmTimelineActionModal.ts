@@ -1,6 +1,6 @@
 import { Modal } from "obsidian";
 
-import type PersonalTimelinePlugin from "../../../main";
+import type PersonalTimelinePlugin from "../main";
 
 export function confirmAction(
 	plugin: PersonalTimelinePlugin,

@@ -6,6 +6,9 @@ export const DEFAULT_SETTINGS: TimelinePluginSettings = {
 	fileOrganization: "year-month",
 	defaultView: "today",
 	timeFormat: "24h",
+	renderTimelineContentMarkdown: false,
+	timelineDotColor: "",
+	timelineLineColor: "",
 	showMetadataInReadingView: true,
 	metadataReadingViewMode: "summary",
 };

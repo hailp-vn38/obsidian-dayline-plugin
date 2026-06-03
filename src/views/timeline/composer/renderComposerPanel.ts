@@ -4,7 +4,6 @@ import {
 	removePendingAttachment,
 } from "./composerAttachments";
 import {
-	addComposerTag,
 	getComposerTags,
 	normalizeComposerContent,
 	syncComposerTextareaHeight,
