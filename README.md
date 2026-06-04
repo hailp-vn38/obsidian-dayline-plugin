@@ -46,7 +46,7 @@ Slept a bit less than usual, but energy is still decent.
 ## Install for local development
 
 1. Place this plugin folder under your vault at:
-   `<Vault>/.obsidian/plugins/personal-timeline/`
+   `<Vault>/.obsidian/plugins/dayline/`
 2. Install dependencies:
    `npm install`
 3. Build once:

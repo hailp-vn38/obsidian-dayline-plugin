@@ -1,9 +1,9 @@
 import { Modal } from "obsidian";
 
-import type PersonalTimelinePlugin from "../main";
+import type DaylinePlugin from "../main";
 
 export function confirmAction(
-	plugin: PersonalTimelinePlugin,
+	plugin: DaylinePlugin,
 	title: string,
 	message: string,
 	confirmLabel: string,
@@ -21,7 +21,7 @@ export function confirmAction(
 
 class ConfirmTimelineActionModal extends Modal {
 	constructor(
-		private readonly plugin: PersonalTimelinePlugin,
+		private readonly plugin: DaylinePlugin,
 		private readonly title: string,
 		private readonly message: string,
 		private readonly confirmLabel: string,

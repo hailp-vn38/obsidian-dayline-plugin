@@ -1,6 +1,6 @@
 import { Modal, Notice, Setting, TextComponent } from "obsidian";
 
-import type PersonalTimelinePlugin from "../main";
+import type DaylinePlugin from "../main";
 import type { ParsedTimelineEntry } from "../models/TimelineEntry";
 import {
 	extractEditableMarkdownContent,
@@ -15,7 +15,7 @@ export class EditTimelineEntryModal extends Modal {
 	private contentValue: string;
 
 	constructor(
-		private readonly plugin: PersonalTimelinePlugin,
+		private readonly plugin: DaylinePlugin,
 		private readonly sourcePath: string,
 		private readonly entry: ParsedTimelineEntry,
 	) {

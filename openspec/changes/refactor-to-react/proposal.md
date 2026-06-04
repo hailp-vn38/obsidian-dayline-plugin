@@ -1,6 +1,6 @@
 ## Why
 
-The current `obsidian-personal-timeline-plugin` uses manual DOM manipulation (via Obsidian's `createDiv`, `createEl`) to construct and manage the user interface. As the plugin grows in complexity, managing state, re-rendering UI components, and maintaining the codebase becomes increasingly difficult, bug-prone, and inefficient. Migrating the view layer to React will provide a declarative UI, centralized state management, better component reusability, and a significantly improved developer experience, making the plugin more robust, maintainable, and easier to extend.
+The current `obsidian-dayline-plugin` uses manual DOM manipulation (via Obsidian's `createDiv`, `createEl`) to construct and manage the user interface. As the plugin grows in complexity, managing state, re-rendering UI components, and maintaining the codebase becomes increasingly difficult, bug-prone, and inefficient. Migrating the view layer to React will provide a declarative UI, centralized state management, better component reusability, and a significantly improved developer experience, making the plugin more robust, maintainable, and easier to extend.
 
 ## What Changes
 

@@ -1,19 +1,19 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import type PersonalTimelinePlugin from "../main";
+import type DaylinePlugin from "../main";
 import { PluginContext } from "../context/PluginContext";
 import { TimelineRoot } from "../components/TimelineRoot";
 import { t } from "../i18n";
 
-export const VIEW_TYPE_TIMELINE = "personal-timeline-view";
+export const VIEW_TYPE_TIMELINE = "dayline-view";
 
 export class TimelineView extends ItemView {
-	private readonly plugin: PersonalTimelinePlugin;
+	private readonly plugin: DaylinePlugin;
 	private reactRoot: Root | null = null;
 	private refreshRevision = 0;
 
-	constructor(leaf: WorkspaceLeaf, plugin: PersonalTimelinePlugin) {
+	constructor(leaf: WorkspaceLeaf, plugin: DaylinePlugin) {
 		super(leaf);
 		this.plugin = plugin;
 	}
@@ -32,7 +32,7 @@ export class TimelineView extends ItemView {
 
 	async onOpen(): Promise<void> {
 		this.contentEl.empty();
-		this.contentEl.addClass("personal-timeline-view-container");
+		this.contentEl.addClass("dayline-view-container");
 		this.reactRoot = createRoot(this.contentEl);
 		this.renderReact();
 	}
@@ -42,7 +42,7 @@ export class TimelineView extends ItemView {
 			this.reactRoot.unmount();
 			this.reactRoot = null;
 		}
-		this.contentEl.removeClass("personal-timeline-view-container");
+		this.contentEl.removeClass("dayline-view-container");
 		this.contentEl.empty();
 	}
 

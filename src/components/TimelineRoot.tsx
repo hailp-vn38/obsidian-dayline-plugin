@@ -243,7 +243,7 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 
 	return (
 		<div
-			className="personal-timeline-view timeline-react-root"
+			className="dayline-view timeline-react-root"
 			style={rootStyle}
 		>
 			<div className="timeline-header">

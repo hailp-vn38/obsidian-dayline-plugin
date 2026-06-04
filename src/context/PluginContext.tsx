@@ -1,9 +1,9 @@
 import { createContext, useContext } from "react";
-import type PersonalTimelinePlugin from "../main";
+import type DaylinePlugin from "../main";
 import type { App } from "obsidian";
 
 export interface PluginContextType {
-	plugin: PersonalTimelinePlugin;
+	plugin: DaylinePlugin;
 	app: App;
 }
 

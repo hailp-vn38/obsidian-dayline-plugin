@@ -1,15 +1,15 @@
-.personal-timeline-view-container {
+.dayline-view-container {
 	padding: 0 !important;
 }
 
-.personal-timeline-view {
+.dayline-view {
 	padding: 12px;
 	background: transparent;
 	color: var(--text-normal);
 }
 
-.personal-timeline-view h2,
-.personal-timeline-view h3 {
+.dayline-view h2,
+.dayline-view h3 {
 	margin: 0;
 }
 
@@ -1196,7 +1196,7 @@ input.timeline-composer-tag-input:focus-visible {
 }
 
 @media (max-width: 720px) {
-	.personal-timeline-view {
+	.dayline-view {
 		padding: 6px;
 	}
 

@@ -17,7 +17,7 @@ interface CreateQuickCheckInInput {
 	source: "quick-capture" | "manual" | "imported";
 }
 
-export default class PersonalTimelinePlugin extends Plugin {
+export default class DaylinePlugin extends Plugin {
 	settings!: TimelinePluginSettings;
 	timelineRepository!: TimelineRepository;
 	timelineIndex!: TimelineIndexService;

@@ -1,6 +1,6 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 
-import type PersonalTimelinePlugin from "../main";
+import type DaylinePlugin from "../main";
 import type {
 	TimelineDefaultView,
 	TimelineFileOrganization,
@@ -33,9 +33,9 @@ const METADATA_READING_VIEW_OPTIONS: Record<TimelineMetadataReadingViewMode, str
 };
 
 export class TimelineSettingTab extends PluginSettingTab {
-	plugin: PersonalTimelinePlugin;
+	plugin: DaylinePlugin;
 
-	constructor(app: App, plugin: PersonalTimelinePlugin) {
+	constructor(app: App, plugin: DaylinePlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}

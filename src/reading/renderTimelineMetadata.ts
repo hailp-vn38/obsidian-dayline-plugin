@@ -1,12 +1,12 @@
 import { TFile, type MarkdownPostProcessorContext } from "obsidian";
 
-import type PersonalTimelinePlugin from "../main";
+import type DaylinePlugin from "../main";
 import type { ParsedTimelineEntry, TimelineEntryMeta } from "../models/TimelineEntry";
 import type { TimelineMetadataReadingViewMode } from "../models/TimelineSettings";
 import { parseTimelineEntries } from "../parser/parseTimelineEntries";
 
 export async function renderTimelineMetadataInReadingView(
-	plugin: PersonalTimelinePlugin,
+	plugin: DaylinePlugin,
 	rootEl: HTMLElement,
 	ctx: MarkdownPostProcessorContext,
 ): Promise<void> {

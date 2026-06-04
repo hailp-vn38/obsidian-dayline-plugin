@@ -1,6 +1,6 @@
 import { Modal, Notice } from "obsidian";
 
-import type PersonalTimelinePlugin from "../main";
+import type DaylinePlugin from "../main";
 import { canCreateQuickCheckIn } from "../utils/tags";
 import {
 	appendPendingFiles,
@@ -44,7 +44,7 @@ export class QuickCheckInModal extends Modal {
 	private contentTextarea!: HTMLTextAreaElement;
 
 	constructor(
-		private readonly plugin: PersonalTimelinePlugin,
+		private readonly plugin: DaylinePlugin,
 		options?: QuickCheckInModalOptions,
 	) {
 		super(plugin.app);
