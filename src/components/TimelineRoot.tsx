@@ -163,15 +163,6 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 		const content = draftState.content.trim();
 
 		try {
-			const activeDateStr = activeDate;
-			let checkInDate = getNow();
-			if (activeDateStr && activeDateStr !== today) {
-				const [year, month, day] = activeDateStr.split("-").map(Number);
-				if (year && month && day) {
-					checkInDate = new Date(year, month - 1, day, 12, 0, 0);
-				}
-			}
-
 			const inputs = mapPendingAttachmentsToInputs(
 				draftState.attachments,
 			);
@@ -179,7 +170,7 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 			const draft = { content, tags };
 			const result = await plugin.timelineRepository.createTextEntry(
 				draft,
-				checkInDate,
+				getNow(),
 				inputs,
 			);
 			await plugin.timelineIndex.refreshFile(result.file);
@@ -192,7 +183,7 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 			new Notice(getErrorMessage(error, t(language, "notice.saveFailed")));
 			console.error(error);
 		}
-	}, [draftState, activeDate, today, plugin, clearDraft, language]);
+	}, [draftState, plugin, clearDraft, language]);
 
 	const handleTagToggle = useCallback((tag: string) => {
 		setFilters((prev: TimelineFilterState) => ({
