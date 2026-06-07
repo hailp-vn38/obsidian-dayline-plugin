@@ -6,18 +6,24 @@ import { ObsidianIcon } from "../shared/ObsidianIcon";
 interface TimelineEmptyStateProps {
 	language: TimelineLanguage;
 	hasTimelineEntries: boolean;
+	isCurrentSourceFilter: boolean;
 	onCreateCheckIn: () => void;
 }
 
 export const TimelineEmptyState: React.FC<TimelineEmptyStateProps> = ({
 	language,
 	hasTimelineEntries,
+	isCurrentSourceFilter,
 	onCreateCheckIn,
 }) => {
-	const titleKey = hasTimelineEntries
+	const titleKey = isCurrentSourceFilter
+		? "timeline.emptySourceTitle"
+		: hasTimelineEntries
 		? "timeline.emptyFilteredTitle"
 		: "timeline.emptyTitle";
-	const descriptionKey = hasTimelineEntries
+	const descriptionKey = isCurrentSourceFilter
+		? "timeline.emptySourceDescription"
+		: hasTimelineEntries
 		? "timeline.emptyFilteredDescription"
 		: "timeline.emptyDescription";
 

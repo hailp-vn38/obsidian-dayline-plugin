@@ -14,9 +14,11 @@ interface TimelineToolbarProps {
 	isSearchExpanded: boolean;
 	isFilterExpanded: boolean;
 	availableTags: string[];
+	currentSourceLabel: string;
 	onSearchInput: (value: string) => void;
 	onDatePresetChange: (preset: TimelineDatePreset) => void;
 	onTagChange: (tag: string) => void;
+	onSourceModeChange: (mode: TimelineFilterState["sourceMode"]) => void;
 	onCustomDateChange: (value: string) => void;
 	onCustomEndDateChange: (value: string) => void;
 }
@@ -42,8 +44,10 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = (props) => {
 					today={props.today}
 					language={props.language}
 					availableTags={props.availableTags}
+					currentSourceLabel={props.currentSourceLabel}
 					onDatePresetChange={props.onDatePresetChange}
 					onTagChange={props.onTagChange}
+					onSourceModeChange={props.onSourceModeChange}
 					onCustomDateChange={props.onCustomDateChange}
 					onCustomEndDateChange={props.onCustomEndDateChange}
 				/>

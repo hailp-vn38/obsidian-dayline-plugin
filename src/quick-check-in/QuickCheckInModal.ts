@@ -1,6 +1,7 @@
 import { Modal, Notice } from "obsidian";
 
 import type DaylinePlugin from "../main";
+import type { TimelineSourceContext } from "../models/TimelineEntry";
 import { canCreateQuickCheckIn } from "../utils/tags";
 import {
 	appendPendingFiles,
@@ -28,6 +29,7 @@ import { t } from "../i18n";
 
 interface QuickCheckInModalOptions {
 	initialContent?: string;
+	sourceContext?: TimelineSourceContext | null;
 }
 
 export class QuickCheckInModal extends Modal {
@@ -42,6 +44,7 @@ export class QuickCheckInModal extends Modal {
 		audioChunks: [],
 		isRecording: false,
 	};
+	private readonly sourceContext?: TimelineSourceContext;
 	private contentTextarea!: HTMLTextAreaElement;
 
 	constructor(
@@ -50,6 +53,7 @@ export class QuickCheckInModal extends Modal {
 	) {
 		super(plugin.app);
 		this.draftState.content = options?.initialContent ?? "";
+		this.sourceContext = options?.sourceContext ?? undefined;
 	}
 
 	onOpen(): void {
@@ -138,6 +142,7 @@ export class QuickCheckInModal extends Modal {
 			tags,
 			attachments: mapPendingAttachmentsToInputs(this.draftState.attachments),
 			source: "quick-capture",
+			sourceContext: this.sourceContext,
 		});
 		new Notice("Timeline check-in created.");
 		this.close();

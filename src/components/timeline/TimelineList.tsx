@@ -12,6 +12,7 @@ interface TimelineListProps {
 	selectedTag: string;
 	renderMarkdown: boolean;
 	onTagToggle: (tag: string) => void;
+	onOpenSource: (item: TimelineIndexItem) => void;
 	onOpenMenu: (event: React.MouseEvent, item: TimelineIndexItem) => void;
 	onTaskToggle: (
 		item: TimelineIndexItem,
@@ -27,6 +28,7 @@ export const TimelineList: React.FC<TimelineListProps> = ({
 	selectedTag,
 	renderMarkdown,
 	onTagToggle,
+	onOpenSource,
 	onOpenMenu,
 	onTaskToggle,
 }) => {
@@ -51,6 +53,7 @@ export const TimelineList: React.FC<TimelineListProps> = ({
 							selectedTag={selectedTag}
 							renderMarkdown={renderMarkdown}
 							onTagToggle={onTagToggle}
+							onOpenSource={onOpenSource}
 							onOpenMenu={onOpenMenu}
 							onTaskToggle={onTaskToggle}
 						/>

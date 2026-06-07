@@ -3,6 +3,7 @@ import { App, PluginSettingTab, Setting } from "obsidian";
 import type DaylinePlugin from "../main";
 import type {
 	TimelineDefaultView,
+	TimelineDailyNotesMode,
 	TimelineFileOrganization,
 	TimelineLanguage,
 	TimelineMetadataReadingViewMode,
@@ -30,6 +31,11 @@ const METADATA_READING_VIEW_OPTIONS: Record<TimelineMetadataReadingViewMode, str
 	summary: "Summary",
 	table: "Table",
 	json: "Raw JSON",
+};
+
+const DAILY_NOTES_MODE_OPTIONS: Record<TimelineDailyNotesMode, string> = {
+	off: "Off",
+	link: "Link daily note",
 };
 
 export class TimelineSettingTab extends PluginSettingTab {
@@ -226,5 +232,52 @@ export class TimelineSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					});
 			});
+
+		new Setting(containerEl).setName(t(language, "settings.properties.heading")).setHeading();
+
+		new Setting(containerEl)
+			.setName(t(language, "settings.propertyEnrichment.name"))
+			.setDesc(t(language, "settings.propertyEnrichment.desc"))
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.propertyEnrichmentEnabled)
+					.onChange(async (value) => {
+						this.plugin.settings.propertyEnrichmentEnabled = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName(t(language, "settings.dailyNotesMode.name"))
+			.setDesc(t(language, "settings.dailyNotesMode.desc"))
+			.addDropdown((dropdown) => {
+				for (const [value, label] of Object.entries(DAILY_NOTES_MODE_OPTIONS)) {
+					dropdown.addOption(value, label);
+				}
+
+				dropdown
+					.setValue(this.plugin.settings.dailyNotesMode)
+					.onChange(async (value: TimelineDailyNotesMode) => {
+						this.plugin.settings.dailyNotesMode = value;
+						await this.plugin.saveSettings();
+						this.display();
+					});
+			});
+
+		if (this.plugin.settings.dailyNotesMode === "link") {
+			new Setting(containerEl)
+				.setName(t(language, "settings.dailyNoteLinkProperty.name"))
+				.setDesc(t(language, "settings.dailyNoteLinkProperty.desc"))
+				.addText((text) =>
+					text
+						.setPlaceholder("Daily note")
+						.setValue(this.plugin.settings.dailyNoteLinkProperty)
+						.onChange(async (value) => {
+							this.plugin.settings.dailyNoteLinkProperty =
+								value.trim() || "daily_note";
+							await this.plugin.saveSettings();
+						}),
+				);
+		}
 	}
 }

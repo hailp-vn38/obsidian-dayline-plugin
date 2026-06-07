@@ -1,13 +1,20 @@
 import { MarkdownView, Notice, Plugin, TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
 
 import { TimelineIndexService } from "./index/TimelineIndexService";
+import type { TimelineSourceContext } from "./models/TimelineEntry";
 import type { TimelinePluginSettings } from "./models/TimelineSettings";
 import { QuickCheckInModal } from "./quick-check-in/QuickCheckInModal";
+import { renderDaylineCodeBlock } from "./reading/renderDaylineBlock";
 import { renderTimelineMetadataInReadingView } from "./reading/renderTimelineMetadata";
 import { DEFAULT_SETTINGS, TimelineSettingTab } from "./settings";
 import type { PendingAttachmentInput } from "./storage/attachments";
 import { TimelineRepository } from "./storage/timelineRepository";
 import { TimelineView, VIEW_TYPE_TIMELINE } from "./views/TimelineView";
+import {
+	createSourceContext,
+	createSourceContextFromView,
+	getSourceContextTarget,
+} from "./utils/sourceContext";
 import { t } from "./i18n";
 
 interface CreateQuickCheckInInput {
@@ -15,6 +22,7 @@ interface CreateQuickCheckInInput {
 	tags: string[];
 	attachments: PendingAttachmentInput[];
 	source: "quick-capture" | "manual" | "imported";
+	sourceContext?: TimelineSourceContext;
 }
 
 export default class DaylinePlugin extends Plugin {
@@ -32,7 +40,11 @@ export default class DaylinePlugin extends Plugin {
 		this.registerMarkdownPostProcessor((el, ctx) => {
 			void renderTimelineMetadataInReadingView(this, el, ctx);
 		});
+		this.registerMarkdownCodeBlockProcessor("dayline", (source, el, ctx) => {
+			renderDaylineCodeBlock(this, source, el, ctx);
+		});
 		this.registerVaultEvents();
+		this.registerWorkspaceEvents();
 
 		this.addRibbonIcon("list-todo", t(this.settings.language, "timeline.title"), () => {
 			void this.activateTimelineView();
@@ -58,6 +70,29 @@ export default class DaylinePlugin extends Plugin {
 				new QuickCheckInModal(this, { initialContent: editor.getSelection() }).open();
 			},
 		});
+		this.addCommand({
+			id: "create-linked-check-in",
+			name: t(this.settings.language, "command.createLinkedCheckIn"),
+			callback: () => {
+				this.openLinkedQuickCheckInModal();
+			},
+		});
+		this.addCommand({
+			id: "create-linked-check-in-from-selection",
+			name: t(this.settings.language, "command.createLinkedCheckInFromSelection"),
+			editorCallback: (editor, view) => {
+				const sourceContext = createSourceContextFromView(
+					this.app,
+					view,
+					editor,
+					"selection",
+				);
+				new QuickCheckInModal(this, {
+					initialContent: editor.getSelection(),
+					sourceContext,
+				}).open();
+			},
+		});
 
 		this.addSettingTab(new TimelineSettingTab(this.app, this));
 	}
@@ -72,6 +107,8 @@ export default class DaylinePlugin extends Plugin {
 	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
 		await this.initializeServices();
+		await this.timelineRepository.refreshAllDayProperties();
+		await this.timelineIndex.rebuild();
 		await this.refreshTimelineViews();
 	}
 
@@ -110,6 +147,14 @@ export default class DaylinePlugin extends Plugin {
 		await this.app.workspace.getLeaf(true).openFile(file);
 	}
 
+	async openSourceContext(sourceContext: TimelineSourceContext): Promise<void> {
+		await this.app.workspace.openLinkText(
+			getSourceContextTarget(sourceContext),
+			"",
+			true,
+		);
+	}
+
 	async createQuickCheckIn(input: CreateQuickCheckInInput): Promise<void> {
 		await this.timelineRepository.createTextEntry(
 			{
@@ -117,6 +162,7 @@ export default class DaylinePlugin extends Plugin {
 				tags: input.tags,
 				type: "checkin",
 				source: input.source,
+				sourceContext: input.sourceContext,
 				attachments: [],
 			},
 			new Date(),
@@ -155,6 +201,54 @@ export default class DaylinePlugin extends Plugin {
 		}));
 	}
 
+	private registerWorkspaceEvents(): void {
+		this.registerEvent(this.app.workspace.on("file-open", () => {
+			void this.refreshTimelineViews();
+		}));
+		this.registerEvent(this.app.workspace.on("editor-menu", (menu, editor, view) => {
+			const sourceContext = createSourceContextFromView(
+				this.app,
+				view,
+				editor,
+				editor.getSelection() ? "selection" : "note",
+			);
+			if (!sourceContext) {
+				return;
+			}
+
+			menu.addItem((item) => {
+				item
+					.setTitle(t(this.settings.language, "command.addSelectionToDayline"))
+					.setIcon("calendar-plus")
+					.onClick(() => {
+						new QuickCheckInModal(this, {
+							initialContent: editor.getSelection(),
+							sourceContext,
+						}).open();
+					});
+			});
+		}));
+		this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => {
+			if (!(file instanceof TFile) || file.extension !== "md") {
+				return;
+			}
+
+			const sourceContext = createSourceContext({
+				app: this.app,
+				file,
+				type: "file",
+			});
+			menu.addItem((item) => {
+				item
+					.setTitle(t(this.settings.language, "command.addFileToDayline"))
+					.setIcon("calendar-plus")
+					.onClick(() => {
+						new QuickCheckInModal(this, { sourceContext }).open();
+					});
+			});
+		}));
+	}
+
 	private async handleVaultUpdate(file: TAbstractFile): Promise<void> {
 		if (!(file instanceof TFile)) {
 			return;
@@ -174,5 +268,24 @@ export default class DaylinePlugin extends Plugin {
 		const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
 		const selectedText = markdownView?.editor?.getSelection() ?? "";
 		new QuickCheckInModal(this, { initialContent: selectedText }).open();
+	}
+
+	private openLinkedQuickCheckInModal(): void {
+		const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		const sourceContext = createSourceContextFromView(
+			this.app,
+			markdownView,
+			markdownView?.editor,
+			markdownView?.editor?.getSelection() ? "selection" : "note",
+		);
+		if (!sourceContext) {
+			new Notice(t(this.settings.language, "notice.noActiveSource"));
+			return;
+		}
+
+		new QuickCheckInModal(this, {
+			initialContent: markdownView?.editor?.getSelection() ?? "",
+			sourceContext,
+		}).open();
 	}
 }

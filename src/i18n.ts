@@ -28,6 +28,13 @@ type TranslationKey =
 	| "settings.showMetadata.desc"
 	| "settings.metadataMode.name"
 	| "settings.metadataMode.desc"
+	| "settings.properties.heading"
+	| "settings.propertyEnrichment.name"
+	| "settings.propertyEnrichment.desc"
+	| "settings.dailyNotesMode.name"
+	| "settings.dailyNotesMode.desc"
+	| "settings.dailyNoteLinkProperty.name"
+	| "settings.dailyNoteLinkProperty.desc"
 	| "common.reset"
 	| "common.cancel"
 	| "common.send"
@@ -51,19 +58,30 @@ type TranslationKey =
 	| "timeline.customDate"
 	| "timeline.filterBy"
 	| "timeline.tagBy"
+	| "timeline.sourceBy"
 	| "timeline.allTags"
+	| "timeline.allSources"
+	| "timeline.currentNote"
 	| "timeline.searchPlaceholder"
 	| "timeline.startDate"
 	| "timeline.endDate"
+	| "timeline.emptySourceTitle"
+	| "timeline.emptySourceDescription"
 	| "timeline.entry"
 	| "timeline.entries"
 	| "timeline.invalidMetadata"
+	| "menu.openLinkedSource"
 	| "notice.checkInCreated"
 	| "notice.saveFailed"
 	| "notice.audioUnsupported"
 	| "notice.microphoneFailed"
 	| "notice.openTimelineFailed"
-	| "command.createCheckInFromSelection";
+	| "notice.noActiveSource"
+	| "command.createCheckInFromSelection"
+	| "command.createLinkedCheckIn"
+	| "command.createLinkedCheckInFromSelection"
+	| "command.addSelectionToDayline"
+	| "command.addFileToDayline";
 
 const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 	en: {
@@ -93,6 +111,13 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"settings.showMetadata.desc": "Render hidden timeline JSON metadata inside Markdown reading view.",
 		"settings.metadataMode.name": "Metadata reading view mode",
 		"settings.metadataMode.desc": "Choose how metadata is displayed in Markdown reading view.",
+		"settings.properties.heading": "Properties",
+		"settings.propertyEnrichment.name": "Add Dayline properties",
+		"settings.propertyEnrichment.desc": "Update day-file properties for Bases and Daily notes.",
+		"settings.dailyNotesMode.name": "Daily notes alignment",
+		"settings.dailyNotesMode.desc": "Link each Dayline day file to the matching Daily note.",
+		"settings.dailyNoteLinkProperty.name": "Daily note property",
+		"settings.dailyNoteLinkProperty.desc": "Property name used for the Daily note link.",
 		"common.reset": "Reset",
 		"common.cancel": "Cancel",
 		"common.send": "Send",
@@ -116,19 +141,30 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"timeline.customDate": "Custom date",
 		"timeline.filterBy": "Filter by",
 		"timeline.tagBy": "Tag by",
+		"timeline.sourceBy": "Source",
 		"timeline.allTags": "All tags",
+		"timeline.allSources": "All sources",
+		"timeline.currentNote": "Current note",
 		"timeline.searchPlaceholder": "Search text, content, tags...",
 		"timeline.startDate": "Start date",
 		"timeline.endDate": "End date",
+		"timeline.emptySourceTitle": "No linked check-ins",
+		"timeline.emptySourceDescription": "This note has no Dayline entries yet.",
 		"timeline.entry": "entry",
 		"timeline.entries": "entries",
 		"timeline.invalidMetadata": "{count} timeline {entryWord} have invalid metadata and were skipped.",
+		"menu.openLinkedSource": "Open linked source",
 		"notice.checkInCreated": "1 checked in!",
 		"notice.saveFailed": "Failed to save check-in.",
 		"notice.audioUnsupported": "Audio recording not supported",
 		"notice.microphoneFailed": "Failed to access microphone",
 		"notice.openTimelineFailed": "Unable to open Dayline.",
+		"notice.noActiveSource": "Open a Markdown note first.",
 		"command.createCheckInFromSelection": "Create quick check-in from selection",
+		"command.createLinkedCheckIn": "Create linked check-in",
+		"command.createLinkedCheckInFromSelection": "Create linked check-in from selection",
+		"command.addSelectionToDayline": "Add selection to Dayline",
+		"command.addFileToDayline": "Add file to Dayline",
 	},
 	vi: {
 		"settings.title": "Dayline",
@@ -157,6 +193,13 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"settings.showMetadata.desc": "Render metadata JSON ẩn của timeline trong Markdown reading view.",
 		"settings.metadataMode.name": "Kiểu hiển thị metadata",
 		"settings.metadataMode.desc": "Chọn cách hiển thị metadata trong Markdown reading view.",
+		"settings.properties.heading": "Properties",
+		"settings.propertyEnrichment.name": "Thêm properties Dayline",
+		"settings.propertyEnrichment.desc": "Cập nhật properties của file ngày để dùng với Bases và Daily notes.",
+		"settings.dailyNotesMode.name": "Liên kết Daily notes",
+		"settings.dailyNotesMode.desc": "Liên kết mỗi file ngày Dayline với Daily note tương ứng.",
+		"settings.dailyNoteLinkProperty.name": "Property Daily note",
+		"settings.dailyNoteLinkProperty.desc": "Tên property dùng cho link Daily note.",
 		"common.reset": "Đặt lại",
 		"common.cancel": "Hủy",
 		"common.send": "Gửi",
@@ -180,19 +223,30 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"timeline.customDate": "Tuỳ chỉnh",
 		"timeline.filterBy": "Lọc theo",
 		"timeline.tagBy": "Tag",
+		"timeline.sourceBy": "Nguồn",
 		"timeline.allTags": "Tất cả",
+		"timeline.allSources": "Tất cả nguồn",
+		"timeline.currentNote": "Note hiện tại",
 		"timeline.searchPlaceholder": "Tìm nội dung, văn bản, tag...",
 		"timeline.startDate": "Ngày bắt đầu",
 		"timeline.endDate": "Ngày kết thúc",
+		"timeline.emptySourceTitle": "Chưa có check-in liên kết",
+		"timeline.emptySourceDescription": "Note này chưa có entry Dayline.",
 		"timeline.entry": "mục",
 		"timeline.entries": "mục",
 		"timeline.invalidMetadata": "{count} {entryWord} timeline có metadata không hợp lệ và đã bị bỏ qua.",
+		"menu.openLinkedSource": "Mở nguồn liên kết",
 		"notice.checkInCreated": "Đã tạo 1 check-in!",
 		"notice.saveFailed": "Không thể lưu check-in.",
 		"notice.audioUnsupported": "Thiết bị không hỗ trợ ghi âm",
 		"notice.microphoneFailed": "Không thể truy cập microphone",
 		"notice.openTimelineFailed": "Không thể mở Dayline.",
+		"notice.noActiveSource": "Hãy mở một note Markdown trước.",
 		"command.createCheckInFromSelection": "Tạo check-in nhanh từ vùng chọn",
+		"command.createLinkedCheckIn": "Tạo check-in liên kết",
+		"command.createLinkedCheckInFromSelection": "Tạo check-in liên kết từ vùng chọn",
+		"command.addSelectionToDayline": "Thêm vùng chọn vào Dayline",
+		"command.addFileToDayline": "Thêm file vào Dayline",
 	},
 };
 

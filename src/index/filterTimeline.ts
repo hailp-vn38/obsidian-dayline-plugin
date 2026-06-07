@@ -10,6 +10,7 @@ export type TimelineDatePreset =
 export interface TimelineFilterState {
 	searchTerm: string;
 	selectedTag: string;
+	sourceMode: "all" | "current";
 	datePreset: TimelineDatePreset;
 	customDate: string;
 	customEndDate: string;
@@ -19,6 +20,7 @@ export function filterTimeline(
 	items: TimelineIndexItem[],
 	filters: TimelineFilterState,
 	today: string,
+	currentSourcePath = "",
 ): TimelineIndexItem[] {
 	const yesterday = shiftDate(today, -1);
 	const weekDates = new Set(getWeekDates(today));
@@ -27,6 +29,7 @@ export function filterTimeline(
 	return items
 		.filter((item) => matchesDatePreset(item, filters, today, yesterday, weekDates))
 		.filter((item) => matchesTag(item, filters.selectedTag))
+		.filter((item) => matchesSource(item, filters.sourceMode, currentSourcePath))
 		.filter((item) => matchesSearch(item, searchQuery))
 		.sort((left, right) => right.createdAt.localeCompare(left.createdAt));
 }
@@ -87,6 +90,18 @@ function matchesTag(item: TimelineIndexItem, selectedTag: string): boolean {
 	}
 
 	return item.tags.includes(selectedTag);
+}
+
+function matchesSource(
+	item: TimelineIndexItem,
+	sourceMode: TimelineFilterState["sourceMode"],
+	currentSourcePath: string,
+): boolean {
+	if (sourceMode === "all") {
+		return true;
+	}
+
+	return Boolean(currentSourcePath) && item.sourceContext?.path === currentSourcePath;
 }
 
 function matchesSearch(item: TimelineIndexItem, searchQuery: string): boolean {

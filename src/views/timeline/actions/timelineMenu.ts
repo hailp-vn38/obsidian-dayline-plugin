@@ -1,12 +1,15 @@
 import { Menu } from "obsidian";
 
+import { t } from "../../../i18n";
 import type { TimelineIndexItem } from "../../../models/TimelineEntry";
+import type { TimelineLanguage } from "../../../models/TimelineSettings";
 import type { TimelineEntryActions } from "./timelineEntryActions";
 
 export function openTimelineEntryMenu(
 	event: MouseEvent,
 	item: TimelineIndexItem,
 	actions: TimelineEntryActions,
+	language: TimelineLanguage,
 ): void {
 	const menu = new Menu();
 	menu.addItem((menuItem) =>
@@ -33,6 +36,16 @@ export function openTimelineEntryMenu(
 				void actions.openSource(item);
 			}),
 	);
+	if (item.sourceContext) {
+		menu.addItem((menuItem) =>
+			menuItem
+				.setTitle(t(language, "menu.openLinkedSource"))
+				.setIcon("link")
+				.onClick(() => {
+					void actions.openLinkedSource(item);
+				}),
+		);
+	}
 	menu.addSeparator();
 	menu.addItem((menuItem) =>
 		menuItem

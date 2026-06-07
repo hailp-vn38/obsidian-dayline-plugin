@@ -19,8 +19,10 @@ interface TimelineFiltersProps {
 	today: string;
 	language: TimelineLanguage;
 	availableTags: string[];
+	currentSourceLabel: string;
 	onDatePresetChange: (preset: TimelineDatePreset) => void;
 	onTagChange: (tag: string) => void;
+	onSourceModeChange: (mode: TimelineFilterState["sourceMode"]) => void;
 	onCustomDateChange: (value: string) => void;
 	onCustomEndDateChange: (value: string) => void;
 }
@@ -96,6 +98,31 @@ export const TimelineFilters: React.FC<TimelineFiltersProps> = (props) => {
 							#{tag}
 						</button>
 					))}
+				</div>
+			</div>
+
+			<div className="timeline-filter-section">
+				<div className="timeline-filter-label">
+					{t(props.language, "timeline.sourceBy")}
+				</div>
+				<div className="timeline-filter-chip-row" role="group">
+					<button
+						type="button"
+						className={`timeline-filter-chip${props.filters.sourceMode === "all" ? " is-active" : ""}`}
+						aria-pressed={props.filters.sourceMode === "all"}
+						onClick={() => props.onSourceModeChange("all")}
+					>
+						{t(props.language, "timeline.allSources")}
+					</button>
+					<button
+						type="button"
+						className={`timeline-filter-chip${props.filters.sourceMode === "current" ? " is-active" : ""}`}
+						aria-pressed={props.filters.sourceMode === "current"}
+						disabled={!props.currentSourceLabel}
+						onClick={() => props.onSourceModeChange("current")}
+					>
+						{props.currentSourceLabel || t(props.language, "timeline.currentNote")}
+					</button>
 				</div>
 			</div>
 		</div>

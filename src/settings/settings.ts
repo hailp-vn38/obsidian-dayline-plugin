@@ -12,4 +12,7 @@ export const DEFAULT_SETTINGS: TimelinePluginSettings = {
 	timelineLineColor: "",
 	showMetadataInReadingView: true,
 	metadataReadingViewMode: "summary",
+	propertyEnrichmentEnabled: true,
+	dailyNotesMode: "off",
+	dailyNoteLinkProperty: "daily_note",
 };

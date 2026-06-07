@@ -155,6 +155,7 @@ function extractTextPreview(blockMarkdown: string): string {
 	const body = blockMarkdown
 		.replace(/^##\s+.*$/m, "")
 		.replace(/<!--\s*timeline-entry\s*[\s\S]*?\s*-->/, "")
+		.replace(/^\s*Context:\s+\[\[[^\]]+\]\]\s*$/gm, "")
 		.replace(/^!\[\[(.*?)\]\]\s*$/gm, "")
 		.replace(/^\[\[(.*?)\]\]\s*$/gm, "")
 		.trim();
@@ -166,6 +167,7 @@ function createIndexItem(file: TFile, entry: ReturnType<typeof parseTimelineEntr
 	const contentMarkdown = extractEditableMarkdownContent(
 		entry.markdown,
 		entry.meta.attachments,
+		entry.meta.sourceContext,
 	);
 
 	return {
@@ -179,6 +181,8 @@ function createIndexItem(file: TFile, entry: ReturnType<typeof parseTimelineEntr
 		mood: entry.meta.mood,
 		attachments: entry.meta.attachments,
 		attachmentTypes: entry.meta.attachments.map((attachment) => attachment.type),
+		sourceContext: entry.meta.sourceContext,
+		hasSourceContext: Boolean(entry.meta.sourceContext),
 		sourcePath: file.path,
 		blockId: entry.meta.id,
 		textPreview: extractTextPreview(entry.markdown),

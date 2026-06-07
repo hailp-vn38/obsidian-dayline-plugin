@@ -25,6 +25,7 @@ export class EditTimelineEntryModal extends Modal {
 		this.contentValue = extractEditableMarkdownContent(
 			entry.markdown,
 			entry.meta.attachments,
+			entry.meta.sourceContext,
 		);
 	}
 

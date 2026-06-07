@@ -14,6 +14,7 @@ export interface TimelineEntryActions {
 	edit: (item: TimelineIndexItem) => Promise<void>;
 	duplicate: (item: TimelineIndexItem) => Promise<void>;
 	openSource: (item: TimelineIndexItem) => Promise<void>;
+	openLinkedSource: (item: TimelineIndexItem) => Promise<void>;
 	delete: (item: TimelineIndexItem) => Promise<void>;
 }
 
@@ -56,6 +57,14 @@ export function createTimelineEntryActions(
 			}
 
 			new Notice("Source file is unavailable.");
+		},
+		openLinkedSource: async (item) => {
+			if (!item.sourceContext) {
+				new Notice("Linked source is unavailable.");
+				return;
+			}
+
+			await plugin.openSourceContext(item.sourceContext);
 		},
 		delete: async (item) => {
 			const confirmed = await confirmAction(

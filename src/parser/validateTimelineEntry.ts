@@ -1,4 +1,5 @@
 import type { TimelineEntryMeta } from "../models/TimelineEntry";
+import { isValidTimelineSourceContext } from "../utils/sourceContext";
 
 export function isValidTimelineEntryMeta(value: unknown): value is TimelineEntryMeta {
 	if (!value || typeof value !== "object") {
@@ -17,6 +18,10 @@ export function isValidTimelineEntryMeta(value: unknown): value is TimelineEntry
 		typeof entry.updatedAt === "string" &&
 		Array.isArray(entry.tags) &&
 		Array.isArray(entry.attachments) &&
-		typeof entry.source === "string"
+		typeof entry.source === "string" &&
+		(
+			entry.sourceContext === undefined ||
+			isValidTimelineSourceContext(entry.sourceContext)
+		)
 	);
 }

@@ -1,6 +1,8 @@
 import React from "react";
 import type { TimelineIndexItem } from "../../models/TimelineEntry";
 import { getDotClass, getLineClass } from "../../views/timeline/utils/timelineGrouping";
+import { getSourceContextLabel } from "../../utils/sourceContext";
+import { ObsidianIcon } from "../shared/ObsidianIcon";
 import { ObsidianMarkdown } from "./ObsidianMarkdown";
 import { TimelineAttachments } from "./TimelineAttachments";
 
@@ -11,6 +13,7 @@ interface TimelineEntryProps {
 	selectedTag: string;
 	renderMarkdown: boolean;
 	onTagToggle: (tag: string) => void;
+	onOpenSource: (item: TimelineIndexItem) => void;
 	onOpenMenu: (event: React.MouseEvent, item: TimelineIndexItem) => void;
 	onTaskToggle: (item: TimelineIndexItem, taskIndex: number, checked: boolean) => void;
 }
@@ -21,6 +24,7 @@ export const TimelineEntry: React.FC<TimelineEntryProps> = ({
 	selectedTag,
 	renderMarkdown,
 	onTagToggle,
+	onOpenSource,
 	onOpenMenu,
 	onTaskToggle,
 }) => {
@@ -53,6 +57,18 @@ export const TimelineEntry: React.FC<TimelineEntryProps> = ({
 					renderMarkdown={renderMarkdown}
 					onTaskToggle={onTaskToggle}
 				/>
+
+				{entry.sourceContext && (
+					<button
+						type="button"
+						className="pt-source-chip"
+						aria-label={`Open ${getSourceContextLabel(entry.sourceContext)}`}
+						onClick={() => onOpenSource(entry)}
+					>
+						<ObsidianIcon iconId="link" />
+						<span>{getSourceContextLabel(entry.sourceContext)}</span>
+					</button>
+				)}
 
 				{entry.tags.length > 0 && (
 					<div className="pt-entry-tags">

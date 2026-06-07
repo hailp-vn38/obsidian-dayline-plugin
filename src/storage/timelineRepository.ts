@@ -7,6 +7,7 @@ import { removeEntryBlock, replaceEntryBlock } from "../parser/mutateTimelineEnt
 import { parseTimelineEntries } from "../parser/parseTimelineEntries";
 import { formatDateForFile, formatTimeForEntry, toIsoString } from "../utils/date";
 import { createAttachmentId, createTimelineEntryId } from "../utils/id";
+import { buildSourceContextLine } from "../utils/sourceContext";
 
 import { buildAttachmentEmbeds, persistAttachments, type PendingAttachmentInput } from "./attachments";
 import { ensureNestedFolder } from "./folder";
@@ -57,19 +58,24 @@ export class TimelineRepository {
 			time: formatTimeForEntry(date),
 			createdAt: timestamp,
 			updatedAt: timestamp,
-			tags: draft.tags,
-			source: draft.source ?? "manual",
-			attachments: allAttachments,
-		};
+				tags: draft.tags,
+				source: draft.source ?? "manual",
+				sourceContext: draft.sourceContext,
+				attachments: allAttachments,
+			};
 
-		const markdownContent = combineContentAndEmbeds(draft.content, allAttachments);
+		const markdownContent = combineContentAndEmbeds(
+			draft.content,
+			allAttachments,
+			meta.sourceContext,
+		);
 		const entryBlock = createTimelineEntryBlock(meta, markdownContent);
 		const existingContent = await this.app.vault.cachedRead(file);
 		const separator = existingContent.trimEnd().length > 0 ? "\n\n" : "";
 		await this.app.vault.modify(file, `${existingContent.trimEnd()}${separator}${entryBlock}\n`);
 
 		const entries = await this.readEntriesFromFile(file);
-		await updateTimelineFrontmatter(file, entries.length, timestamp);
+		await updateTimelineFrontmatter(file, entries, timestamp, this.settings);
 
 		const createdEntry = entries.find((entry) => entry.meta.id === meta.id);
 		if (!createdEntry) {
@@ -133,11 +139,20 @@ export class TimelineRepository {
 		};
 		const nextBlock = createTimelineEntryBlock(
 			nextMeta,
-			combineContentAndEmbeds(input.content, target.meta.attachments),
+			combineContentAndEmbeds(
+				input.content,
+				target.meta.attachments,
+				nextMeta.sourceContext,
+			),
 		);
 		const nextMarkdown = replaceEntryBlock(markdown, entryId, nextBlock);
 		await this.app.vault.modify(file, nextMarkdown);
-		await updateTimelineFrontmatter(file, entries.length, updatedAt);
+		await updateTimelineFrontmatter(
+			file,
+			parseTimelineEntries(nextMarkdown),
+			updatedAt,
+			this.settings,
+		);
 	}
 
 	async updateEntryContent(
@@ -160,11 +175,20 @@ export class TimelineRepository {
 		};
 		const nextBlock = createTimelineEntryBlock(
 			nextMeta,
-			combineContentAndEmbeds(content, target.meta.attachments),
+			combineContentAndEmbeds(
+				content,
+				target.meta.attachments,
+				nextMeta.sourceContext,
+			),
 		);
 		const nextMarkdown = replaceEntryBlock(markdown, entryId, nextBlock);
 		await this.app.vault.modify(file, nextMarkdown);
-		await updateTimelineFrontmatter(file, entries.length, updatedAt);
+		await updateTimelineFrontmatter(
+			file,
+			parseTimelineEntries(nextMarkdown),
+			updatedAt,
+			this.settings,
+		);
 	}
 
 	async toggleTaskInEntry(
@@ -181,6 +205,7 @@ export class TimelineRepository {
 		const content = extractEditableMarkdownContent(
 			entry.markdown,
 			entry.meta.attachments,
+			entry.meta.sourceContext,
 		);
 		const nextContent = toggleTaskAtIndex(content, taskIndex, checked);
 		if (nextContent === null) {
@@ -194,10 +219,14 @@ export class TimelineRepository {
 	async deleteEntry(sourcePath: string, entryId: string): Promise<void> {
 		const file = this.requireTimelineFile(sourcePath);
 		const markdown = await this.app.vault.cachedRead(file);
-		const entries = parseTimelineEntries(markdown);
 		const nextMarkdown = removeEntryBlock(markdown, entryId);
 		await this.app.vault.modify(file, nextMarkdown);
-		await updateTimelineFrontmatter(file, Math.max(entries.length - 1, 0), toIsoString(new Date()));
+		await updateTimelineFrontmatter(
+			file,
+			parseTimelineEntries(nextMarkdown),
+			toIsoString(new Date()),
+			this.settings,
+		);
 	}
 
 	async duplicateEntry(sourcePath: string, entryId: string): Promise<void> {
@@ -207,17 +236,39 @@ export class TimelineRepository {
 		}
 
 		const now = new Date();
-		const content = extractEditableMarkdownContent(target.markdown, target.meta.attachments);
+		const content = extractEditableMarkdownContent(
+			target.markdown,
+			target.meta.attachments,
+			target.meta.sourceContext,
+		);
 		await this.createTextEntry(
 			{
 				content,
 				tags: [...target.meta.tags],
 				type: target.meta.type,
 				source: "manual",
+				sourceContext: target.meta.sourceContext,
 				attachments: cloneAttachments(target.meta.attachments, now),
 			},
 			new Date(`${target.meta.date}T${currentSecondsTime(now)}`),
 		);
+	}
+
+	async refreshAllDayProperties(): Promise<void> {
+		const timelineFolder = normalizeFolder(this.settings.timelineFolder);
+		const files = this.app.vault
+			.getFiles()
+			.filter((file) => file.extension === "md" && file.path.startsWith(`${timelineFolder}/`));
+
+		for (const file of files) {
+			const entries = await this.readEntriesFromFile(file);
+			await updateTimelineFrontmatter(
+				file,
+				entries,
+				getLastUpdatedAt(entries),
+				this.settings,
+			);
+		}
 	}
 
 	private async ensureTimelineDayFile(date: string, nowIso: string): Promise<TFile> {
@@ -260,15 +311,16 @@ export class TimelineRepository {
 	}
 }
 
-function combineContentAndEmbeds(content: string, attachments: TimelineEntryMeta["attachments"]): string {
+function combineContentAndEmbeds(
+	content: string,
+	attachments: TimelineEntryMeta["attachments"],
+	sourceContext?: TimelineEntryMeta["sourceContext"],
+): string {
 	const trimmedContent = content.trim();
 	const embedLines = buildAttachmentEmbeds(attachments);
+	const contextLine = sourceContext ? buildSourceContextLine(sourceContext) : "";
 
-	if (embedLines.length === 0) {
-		return trimmedContent;
-	}
-
-	return [trimmedContent, ...embedLines].filter(Boolean).join("\n\n");
+	return [contextLine, trimmedContent, ...embedLines].filter(Boolean).join("\n\n");
 }
 
 function determineEntryType(
@@ -297,11 +349,14 @@ function stripLegacyTitle(meta: TimelineEntryMeta): TimelineEntryMeta {
 export function extractEditableMarkdownContent(
 	blockMarkdown: string,
 	attachments: TimelineAttachment[],
+	sourceContext?: TimelineEntryMeta["sourceContext"],
 ): string {
 	let body = blockMarkdown
 		.replace(/^##\s+.*$/m, "")
 		.replace(/<!--\s*timeline-entry\s*[\s\S]*?\s*-->/, "")
 		.trim();
+
+	body = removeSourceContextLine(body, sourceContext);
 
 	for (const embed of buildAttachmentEmbeds(attachments)) {
 		const pattern = new RegExp(
@@ -312,6 +367,21 @@ export function extractEditableMarkdownContent(
 	}
 
 	return body.replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function removeSourceContextLine(
+	body: string,
+	sourceContext?: TimelineEntryMeta["sourceContext"],
+): string {
+	if (!sourceContext) {
+		return body;
+	}
+
+	const exactLine = buildSourceContextLine(sourceContext);
+	return body
+		.replace(new RegExp(`^\\s*${escapeRegExp(exactLine)}\\s*$\\n?`, "gm"), "")
+		.replace(/^\s*Context:\s+\[\[[^\]]+\]\]\s*$\n?/gm, "")
+		.trim();
 }
 
 function cloneAttachments(attachments: TimelineAttachment[], timestamp: Date): TimelineAttachment[] {
@@ -327,6 +397,16 @@ function currentSecondsTime(date: Date): string {
 	const minutes = `${date.getMinutes()}`.padStart(2, "0");
 	const seconds = `${date.getSeconds()}`.padStart(2, "0");
 	return `${hours}:${minutes}:${seconds}`;
+}
+
+function getLastUpdatedAt(entries: ParsedTimelineEntry[]): string {
+	return entries
+		.map((entry) => entry.meta.updatedAt || entry.meta.createdAt)
+		.sort((left, right) => right.localeCompare(left))[0] ?? toIsoString(new Date());
+}
+
+function normalizeFolder(folder: string): string {
+	return folder.replace(/\/+$/, "");
 }
 
 function escapeRegExp(value: string): string {

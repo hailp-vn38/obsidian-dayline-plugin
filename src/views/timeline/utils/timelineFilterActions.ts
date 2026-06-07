@@ -11,6 +11,7 @@ export function resetExpandedFilters(
 	filters.customDate = today;
 	filters.customEndDate = today;
 	filters.selectedTag = "";
+	filters.sourceMode = "all";
 }
 
 export function updateDatePreset(

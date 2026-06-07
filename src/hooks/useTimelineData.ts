@@ -13,12 +13,14 @@ interface UseTimelineDataOptions {
 	filters: TimelineFilterState;
 	refreshRevision: number;
 	uiRevision: number;
+	currentSourcePath: string;
 }
 
 export function useTimelineData({
 	filters,
 	refreshRevision,
 	uiRevision,
+	currentSourcePath,
 }: UseTimelineDataOptions) {
 	const { plugin } = usePlugin();
 	void refreshRevision;
@@ -30,8 +32,8 @@ export function useTimelineData({
 	const today = formatDateForFile(getNow());
 
 	const filteredItems = useMemo(
-		() => filterTimeline(allItems, filters, today),
-		[allItems, filters, today],
+		() => filterTimeline(allItems, filters, today, currentSourcePath),
+		[allItems, filters, today, currentSourcePath],
 	);
 
 	const activeDate = useMemo(() => {

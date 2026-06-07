@@ -4,6 +4,17 @@ export type TimelineEntryType = "checkin" | "note" | "image" | "audio" | "file" 
 
 export type TimelineEntrySource = "manual" | "quick-capture" | "imported";
 
+export type TimelineSourceContextType = "note" | "selection" | "file";
+
+export interface TimelineSourceContext {
+	type: TimelineSourceContextType;
+	path: string;
+	linktext: string;
+	subpath?: string;
+	display?: string;
+	capturedAt: string;
+}
+
 export interface TimelineEntryMeta {
 	schemaVersion: 1;
 	id: string;
@@ -15,6 +26,7 @@ export interface TimelineEntryMeta {
 	tags: string[];
 	mood?: string | null;
 	source: TimelineEntrySource;
+	sourceContext?: TimelineSourceContext;
 	attachments: TimelineAttachment[];
 }
 
@@ -30,6 +42,7 @@ export interface TimelineEntryDraft {
 	tags: string[];
 	type?: TimelineEntryType;
 	source?: TimelineEntrySource;
+	sourceContext?: TimelineSourceContext;
 	attachments?: TimelineAttachment[];
 }
 
@@ -44,6 +57,8 @@ export interface TimelineIndexItem {
 	mood?: string | null;
 	attachments: TimelineAttachment[];
 	attachmentTypes: TimelineAttachmentType[];
+	sourceContext?: TimelineSourceContext;
+	hasSourceContext: boolean;
 	sourcePath: string;
 	blockId: string;
 	textPreview: string;

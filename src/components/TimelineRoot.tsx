@@ -60,6 +60,7 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 	const [filters, setFilters] = useState<TimelineFilterState>({
 		searchTerm: "",
 		selectedTag: "",
+		sourceMode: "all",
 		datePreset: "today",
 		customDate: formatDateForFile(getNow()),
 		customEndDate: formatDateForFile(getNow()),
@@ -67,6 +68,9 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 
 	const [activePanel, setActivePanel] =
 		useState<TimelineActivePanel>(null);
+	const activeSourceFile = plugin.app.workspace.getActiveFile();
+	const currentSourcePath = activeSourceFile?.path ?? "";
+	const currentSourceLabel = activeSourceFile?.basename ?? "";
 
 	const {
 		allItems,
@@ -75,7 +79,12 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 		today,
 		filteredItems,
 		activeDate,
-	} = useTimelineData({ filters, refreshRevision, uiRevision });
+	} = useTimelineData({
+		filters,
+		refreshRevision,
+		uiRevision,
+		currentSourcePath,
+	});
 
 	const entryActions = useMemo(
 		() => createTimelineEntryActions({ plugin }),
@@ -158,6 +167,16 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 		}));
 	}, []);
 
+	const handleSourceModeChange = useCallback(
+		(sourceMode: TimelineFilterState["sourceMode"]) => {
+			setFilters((prev: TimelineFilterState) => ({
+				...prev,
+				sourceMode,
+			}));
+		},
+		[],
+	);
+
 	const handleCustomDateChange = useCallback((value: string) => {
 		setFilters((prev: TimelineFilterState) => ({
 			...prev,
@@ -233,9 +252,17 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 
 	const handleOpenMenu = useCallback(
 		(event: React.MouseEvent, item: TimelineIndexItem) => {
-			openTimelineEntryMenu(event.nativeEvent, item, entryActions);
+			openTimelineEntryMenu(event.nativeEvent, item, entryActions, language);
 		},
-		[entryActions],
+		[entryActions, language],
+	);
+
+	const handleOpenLinkedSource = useCallback(
+		async (item: TimelineIndexItem) => {
+			if (!item.sourceContext) return;
+			await plugin.openSourceContext(item.sourceContext);
+		},
+		[plugin],
 	);
 
 	const handleTaskToggle = useCallback(
@@ -324,16 +351,18 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 			<TimelineToolbar
 				filters={filters}
 				today={today}
-				language={language}
-				isSearchExpanded={activePanel === "search"}
-				isFilterExpanded={activePanel === "filter"}
-				availableTags={availableTags}
-				onSearchInput={handleSearchInput}
-				onDatePresetChange={handleDatePresetChange}
-				onTagChange={handleTagChange}
-				onCustomDateChange={handleCustomDateChange}
-				onCustomEndDateChange={handleCustomEndDateChange}
-			/>
+					language={language}
+					isSearchExpanded={activePanel === "search"}
+					isFilterExpanded={activePanel === "filter"}
+					availableTags={availableTags}
+					currentSourceLabel={currentSourceLabel}
+					onSearchInput={handleSearchInput}
+					onDatePresetChange={handleDatePresetChange}
+					onTagChange={handleTagChange}
+					onSourceModeChange={handleSourceModeChange}
+					onCustomDateChange={handleCustomDateChange}
+					onCustomEndDateChange={handleCustomEndDateChange}
+				/>
 
 			<div className="timeline-list-section">
 				<div className="timeline-list-summary">
@@ -342,11 +371,12 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 				</div>
 
 				{filteredItems.length === 0 ? (
-					<TimelineEmptyState
-						language={language}
-						hasTimelineEntries={allItems.length > 0}
-						onCreateCheckIn={handleCreateToggle}
-					/>
+						<TimelineEmptyState
+							language={language}
+							hasTimelineEntries={allItems.length > 0}
+							isCurrentSourceFilter={filters.sourceMode === "current"}
+							onCreateCheckIn={handleCreateToggle}
+						/>
 				) : (
 						<TimelineList
 							items={filteredItems}
@@ -356,9 +386,12 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 							renderMarkdown={
 								plugin.settings.renderTimelineContentMarkdown
 							}
-							onTagToggle={handleTagToggle}
-							onOpenMenu={handleOpenMenu}
-							onTaskToggle={(item, taskIndex, checked) => {
+								onTagToggle={handleTagToggle}
+								onOpenSource={(item) => {
+									void handleOpenLinkedSource(item);
+								}}
+								onOpenMenu={handleOpenMenu}
+								onTaskToggle={(item, taskIndex, checked) => {
 								void handleTaskToggle(item, taskIndex, checked);
 							}}
 						/>
