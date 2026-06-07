@@ -64,6 +64,7 @@ export function renderTimelineToolbar(
 
 	const datePresetSelect = filtersRow.createEl("select");
 	datePresetSelect.addClass("timeline-select");
+	addOption(datePresetSelect, "all", "All");
 	addOption(datePresetSelect, "today", "Today");
 	addOption(datePresetSelect, "yesterday", "Yesterday");
 	addOption(datePresetSelect, "this-week", "This week");

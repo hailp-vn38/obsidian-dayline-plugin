@@ -24,6 +24,7 @@ import type {
 	ComposerDraftState,
 	ComposerRecordingState,
 } from "../views/timeline/composer/composerTypes";
+import { t } from "../i18n";
 
 interface QuickCheckInModalOptions {
 	initialContent?: string;
@@ -61,8 +62,14 @@ export class QuickCheckInModal extends Modal {
 			rootClassName: "pt-checkin-modal-body timeline-composer",
 			contentClassName:
 				"pt-checkin-modal-content timeline-composer-content-input",
-			contentPlaceholder: "Hãy nhập",
-			tagsPlaceholder: "# Add tags",
+			contentPlaceholder: t(
+				this.plugin.settings.language,
+				"timeline.contentPlaceholder",
+			),
+			tagsPlaceholder: t(
+				this.plugin.settings.language,
+				"timeline.tagsPlaceholder",
+			),
 			footerClassName: "pt-checkin-modal-footer timeline-composer-footer",
 			attachmentToolsClassName:
 				"pt-checkin-modal-actions timeline-composer-tools",

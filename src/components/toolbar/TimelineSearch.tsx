@@ -14,7 +14,7 @@ export const TimelineSearch: React.FC<TimelineSearchProps> = ({
 	onSearchInput,
 }) => {
 	return (
-		<div>
+		<div className="timeline-search-panel">
 			<input
 				type="search"
 				className="timeline-input"

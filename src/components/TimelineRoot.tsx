@@ -20,6 +20,11 @@ import {
 	getComposerTags,
 } from "../views/timeline/composer/composerDraft";
 import { TimelineToolbar } from "./toolbar/TimelineToolbar";
+import {
+	TimelineHeader,
+	type TimelineActivePanel,
+} from "./header/TimelineHeader";
+import { TimelineEmptyState } from "./timeline/TimelineEmptyState";
 import { TimelineList } from "./timeline/TimelineList";
 import { ComposerPanel } from "./composer/ComposerPanel";
 import { Notice, TFile } from "obsidian";
@@ -60,11 +65,11 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 		customEndDate: formatDateForFile(getNow()),
 	});
 
-	const [isComposerExpanded, setIsComposerExpanded] = useState(false);
-	const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-	const [isFilterExpanded, setIsFilterExpanded] = useState(false);
+	const [activePanel, setActivePanel] =
+		useState<TimelineActivePanel>(null);
 
 	const {
+		allItems,
 		availableTags,
 		malformedEntryCount,
 		today,
@@ -77,24 +82,58 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 		[plugin],
 	);
 
+	const clearSearchTerm = useCallback(() => {
+		setFilters((prev: TimelineFilterState) => ({
+			...prev,
+			searchTerm: "",
+		}));
+	}, []);
+
+	const resetTimelineFilters = useCallback(() => {
+		setFilters((prev: TimelineFilterState) => {
+			const newFilters = { ...prev };
+			resetExpandedFilters(newFilters, today);
+			return newFilters;
+		});
+	}, [today]);
+
+	const handleCreateToggle = useCallback(() => {
+		setActivePanel((prev: TimelineActivePanel) => {
+			if (prev === "search") {
+				clearSearchTerm();
+			}
+			if (prev === "filter") {
+				resetTimelineFilters();
+			}
+			return prev === "composer" ? null : "composer";
+		});
+	}, [clearSearchTerm, resetTimelineFilters]);
+
 	const handleSearchToggle = useCallback(() => {
-		setIsSearchExpanded((prev: boolean) => !prev);
-		if (isSearchExpanded && filters.searchTerm) {
-			setFilters((prev: TimelineFilterState) => ({
-				...prev,
-				searchTerm: "",
-			}));
-		}
-	}, [isSearchExpanded, filters.searchTerm]);
+		setActivePanel((prev: TimelineActivePanel) => {
+			if (prev === "search") {
+				clearSearchTerm();
+				return null;
+			}
+			if (prev === "filter") {
+				resetTimelineFilters();
+			}
+			return "search";
+		});
+	}, [clearSearchTerm, resetTimelineFilters]);
 
 	const handleFilterToggle = useCallback(() => {
-		if (isFilterExpanded) {
-			const newFilters = { ...filters };
-			resetExpandedFilters(newFilters, today);
-			setFilters(newFilters);
-		}
-		setIsFilterExpanded((prev: boolean) => !prev);
-	}, [isFilterExpanded, filters, today]);
+		setActivePanel((prev: TimelineActivePanel) => {
+			if (prev === "filter") {
+				resetTimelineFilters();
+				return null;
+			}
+			if (prev === "search") {
+				clearSearchTerm();
+			}
+			return "filter";
+		});
+	}, [clearSearchTerm, resetTimelineFilters]);
 
 	const handleSearchInput = useCallback((value: string) => {
 		setFilters((prev: TimelineFilterState) => ({
@@ -152,7 +191,7 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 	);
 
 	const handleCancelComposer = useCallback(() => {
-		setIsComposerExpanded(false);
+		setActivePanel(null);
 		clearDraft();
 	}, [clearDraft]);
 
@@ -177,7 +216,7 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 			await plugin.refreshTimelineViews();
 
 			new Notice(t(language, "notice.checkInCreated"));
-			setIsComposerExpanded(false);
+			setActivePanel(null);
 			clearDraft();
 		} catch (error) {
 			new Notice(getErrorMessage(error, t(language, "notice.saveFailed")));
@@ -237,22 +276,14 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 			className="dayline-view timeline-react-root"
 			style={rootStyle}
 		>
-			<div className="timeline-header">
-				<div className="timeline-header-text">
-					<h2>{t(language, "timeline.title")}</h2>
-					<div className="timeline-date-label">
-						{describeDatePreset(language, filters, activeDate)}
-					</div>
-				</div>
-				<button
-					className="timeline-header-button"
-					type="button"
-					aria-label={t(language, "timeline.createCheckIn")}
-					onClick={() => setIsComposerExpanded(true)}
-				>
-					+
-				</button>
-			</div>
+			<TimelineHeader
+				language={language}
+				subtitle={describeDatePreset(language, filters, activeDate)}
+				activePanel={activePanel}
+				onCreateToggle={handleCreateToggle}
+				onSearchToggle={handleSearchToggle}
+				onFilterToggle={handleFilterToggle}
+			/>
 
 			{malformedEntryCount > 0 && (
 				<div className="timeline-warning-banner">
@@ -268,7 +299,7 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 				</div>
 			)}
 
-			{isComposerExpanded && (
+			{activePanel === "composer" && (
 				<ComposerPanel
 					rootClassName="timeline-composer"
 					contentPlaceholder={t(language, "timeline.contentPlaceholder")}
@@ -294,12 +325,9 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 				filters={filters}
 				today={today}
 				language={language}
-				summaryText={`${describeDatePreset(language, filters, activeDate)} · ${entryCountText(language, filteredItems.length)}`}
-				isSearchExpanded={isSearchExpanded}
-				isFilterExpanded={isFilterExpanded}
+				isSearchExpanded={activePanel === "search"}
+				isFilterExpanded={activePanel === "filter"}
 				availableTags={availableTags}
-				onSearchToggle={handleSearchToggle}
-				onFilterToggle={handleFilterToggle}
 				onSearchInput={handleSearchInput}
 				onDatePresetChange={handleDatePresetChange}
 				onTagChange={handleTagChange}
@@ -314,9 +342,11 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 				</div>
 
 				{filteredItems.length === 0 ? (
-					<p className="timeline-empty-state">
-						{t(language, "timeline.empty")}
-					</p>
+					<TimelineEmptyState
+						language={language}
+						hasTimelineEntries={allItems.length > 0}
+						onCreateCheckIn={handleCreateToggle}
+					/>
 				) : (
 						<TimelineList
 							items={filteredItems}

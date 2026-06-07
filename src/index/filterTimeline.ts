@@ -1,6 +1,11 @@
 import type { TimelineIndexItem } from "../models/TimelineEntry";
 
-export type TimelineDatePreset = "today" | "yesterday" | "this-week" | "custom";
+export type TimelineDatePreset =
+	| "all"
+	| "today"
+	| "yesterday"
+	| "this-week"
+	| "custom";
 
 export interface TimelineFilterState {
 	searchTerm: string;
@@ -34,6 +39,8 @@ function matchesDatePreset(
 	weekDates: Set<string>,
 ): boolean {
 	switch (filters.datePreset) {
+		case "all":
+			return true;
 		case "today":
 			return item.date === today;
 		case "yesterday":

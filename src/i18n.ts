@@ -40,10 +40,17 @@ type TranslationKey =
 	| "timeline.contentPlaceholder"
 	| "timeline.tagsPlaceholder"
 	| "timeline.empty"
+	| "timeline.emptyTitle"
+	| "timeline.emptyDescription"
+	| "timeline.emptyFilteredTitle"
+	| "timeline.emptyFilteredDescription"
 	| "timeline.today"
+	| "timeline.allDates"
 	| "timeline.yesterday"
 	| "timeline.thisWeek"
 	| "timeline.customDate"
+	| "timeline.filterBy"
+	| "timeline.tagBy"
 	| "timeline.allTags"
 	| "timeline.searchPlaceholder"
 	| "timeline.startDate"
@@ -95,13 +102,20 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"common.closeFilter": "Close filter",
 		"timeline.title": "Dayline",
 		"timeline.createCheckIn": "Create check-in",
-		"timeline.contentPlaceholder": "Write something",
-		"timeline.tagsPlaceholder": "# Add tags",
+		"timeline.contentPlaceholder": "Capture what happened today...",
+		"timeline.tagsPlaceholder": "# work, idea, reflection",
 		"timeline.empty": "No check-ins match the current filters.",
+		"timeline.emptyTitle": "No timeline yet",
+		"timeline.emptyDescription": "Create the first check-in to start your dayline.",
+		"timeline.emptyFilteredTitle": "No matching check-ins",
+		"timeline.emptyFilteredDescription": "Adjust search or filters to see more timeline entries.",
+		"timeline.allDates": "All",
 		"timeline.today": "Today",
 		"timeline.yesterday": "Yesterday",
 		"timeline.thisWeek": "This week",
 		"timeline.customDate": "Custom date",
+		"timeline.filterBy": "Filter by",
+		"timeline.tagBy": "Tag by",
 		"timeline.allTags": "All tags",
 		"timeline.searchPlaceholder": "Search text, content, tags...",
 		"timeline.startDate": "Start date",
@@ -152,14 +166,21 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"common.closeFilter": "Đóng bộ lọc",
 		"timeline.title": "Dayline",
 		"timeline.createCheckIn": "Tạo check-in",
-		"timeline.contentPlaceholder": "Viết nội dung",
-		"timeline.tagsPlaceholder": "# Thêm tag",
+		"timeline.contentPlaceholder": "Ghi lại điều đáng nhớ hôm nay...",
+		"timeline.tagsPlaceholder": "# công việc, ý tưởng, cảm nhận",
 		"timeline.empty": "Không có check-in nào khớp với bộ lọc hiện tại.",
+		"timeline.emptyTitle": "Chưa có timeline",
+		"timeline.emptyDescription": "Tạo check-in đầu tiên để bắt đầu dayline.",
+		"timeline.emptyFilteredTitle": "Không có check-in phù hợp",
+		"timeline.emptyFilteredDescription": "Điều chỉnh tìm kiếm hoặc bộ lọc để xem thêm timeline.",
+		"timeline.allDates": "Tất cả",
 		"timeline.today": "Hôm nay",
 		"timeline.yesterday": "Hôm qua",
 		"timeline.thisWeek": "Tuần này",
-		"timeline.customDate": "Ngày tùy chọn",
-		"timeline.allTags": "Tất cả tag",
+		"timeline.customDate": "Tuỳ chỉnh",
+		"timeline.filterBy": "Lọc theo",
+		"timeline.tagBy": "Tag",
+		"timeline.allTags": "Tất cả",
 		"timeline.searchPlaceholder": "Tìm nội dung, văn bản, tag...",
 		"timeline.startDate": "Ngày bắt đầu",
 		"timeline.endDate": "Ngày kết thúc",
@@ -203,6 +224,8 @@ export function describeDatePreset(
 	activeDate: string,
 ): string {
 	switch (filters.datePreset) {
+		case "all":
+			return t(language, "timeline.allDates");
 		case "today":
 			return t(language, "timeline.today");
 		case "yesterday":
@@ -221,6 +244,8 @@ export function datePresetLabel(
 	preset: TimelineDatePreset,
 ): string {
 	switch (preset) {
+		case "all":
+			return t(language, "timeline.allDates");
 		case "today":
 			return t(language, "timeline.today");
 		case "yesterday":

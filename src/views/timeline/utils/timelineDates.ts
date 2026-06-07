@@ -20,6 +20,8 @@ export function describeDatePreset(
 	activeDate: string,
 ): string {
 	switch (filters.datePreset) {
+		case "all":
+			return "All";
 		case "today":
 			return "Today";
 		case "yesterday":

@@ -19,7 +19,7 @@ export function updateDatePreset(
 	today: string,
 ): void {
 	filters.datePreset = preset;
-	if (preset === "today") {
+	if (preset === "today" || preset === "all") {
 		filters.customDate = today;
 		filters.customEndDate = today;
 	}
