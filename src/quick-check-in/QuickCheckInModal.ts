@@ -1,7 +1,8 @@
-import { Modal, Notice } from "obsidian";
+import { Modal, Notice, setIcon } from "obsidian";
 
 import type DaylinePlugin from "../main";
 import type { TimelineSourceContext } from "../models/TimelineEntry";
+import { getSourceContextLabel } from "../utils/sourceContext";
 import { canCreateQuickCheckIn } from "../utils/tags";
 import {
 	appendPendingFiles,
@@ -62,6 +63,7 @@ export class QuickCheckInModal extends Modal {
 		contentEl.addClass("pt-checkin-modal");
 
 		contentEl.createEl("h2", { text: "Quick check-in" });
+		this.renderSourceContext();
 		this.contentTextarea = renderComposerPanel(contentEl, {
 			rootClassName: "pt-checkin-modal-body timeline-composer",
 			contentClassName:
@@ -146,6 +148,38 @@ export class QuickCheckInModal extends Modal {
 		});
 		new Notice("Timeline check-in created.");
 		this.close();
+	}
+
+	private renderSourceContext(): void {
+		if (!this.sourceContext) {
+			return;
+		}
+
+		const sourceContext = this.sourceContext;
+		const sourceEl = this.contentEl.createDiv({
+			cls: "pt-checkin-source",
+		});
+		const iconEl = sourceEl.createSpan({
+			cls: "pt-checkin-source-icon",
+		});
+		setIcon(iconEl, "link");
+
+		const bodyEl = sourceEl.createDiv({
+			cls: "pt-checkin-source-body",
+		});
+		bodyEl.createDiv({
+			cls: "pt-checkin-source-label",
+			text: t(this.plugin.settings.language, "timeline.linkedSource"),
+		});
+
+		const linkButton = bodyEl.createEl("button", {
+			cls: "pt-checkin-source-link",
+			text: getSourceContextLabel(sourceContext),
+		});
+		linkButton.type = "button";
+		linkButton.addEventListener("click", () => {
+			void this.plugin.openSourceContext(sourceContext);
+		});
 	}
 
 	private async addPendingFiles(files: File[], typeHint: "image" | "file"): Promise<void> {

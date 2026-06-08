@@ -334,6 +334,7 @@ Use these properties in an Obsidian Base to inspect Dayline day files:
 | `Default view` | Yes | `Today` | Initial date range for the sidebar timeline. |
 | `Time format` | Yes | `24-hour` | Display format for entry times. |
 | `Render content as Markdown` | No | Off | Uses Obsidian Markdown rendering in timeline entries. |
+| `Show linked source preview` | No | Off | Shows a short preview of linked Markdown files in timeline entries. |
 | `Show timeline metadata in reading view` | No | On | Shows hidden entry metadata in Dayline files. |
 | `Metadata reading view mode` | No | `Summary` | Controls how metadata is shown in Reading view. |
 | `Add Dayline properties` | No | On | Maintains optional `dayline_*` aggregate properties. |

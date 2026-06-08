@@ -1,17 +1,22 @@
 import React from "react";
 import type { TimelineIndexItem } from "../../models/TimelineEntry";
+import type { TimelineLanguage } from "../../models/TimelineSettings";
 import { getDotClass, getLineClass } from "../../views/timeline/utils/timelineGrouping";
 import { getSourceContextLabel } from "../../utils/sourceContext";
 import { ObsidianIcon } from "../shared/ObsidianIcon";
 import { ObsidianMarkdown } from "./ObsidianMarkdown";
+import { LinkedSourcePreview } from "./LinkedSourcePreview";
 import { TimelineAttachments } from "./TimelineAttachments";
 
 interface TimelineEntryProps {
 	entry: TimelineIndexItem;
 	isFirst: boolean;
 	isLast: boolean;
+	language: TimelineLanguage;
 	selectedTag: string;
 	renderMarkdown: boolean;
+	showLinkedSourcePreview: boolean;
+	refreshRevision: number;
 	onTagToggle: (tag: string) => void;
 	onOpenSource: (item: TimelineIndexItem) => void;
 	onOpenMenu: (event: React.MouseEvent, item: TimelineIndexItem) => void;
@@ -21,8 +26,11 @@ interface TimelineEntryProps {
 export const TimelineEntry: React.FC<TimelineEntryProps> = ({
 	entry,
 	isFirst,
+	language,
 	selectedTag,
 	renderMarkdown,
+	showLinkedSourcePreview,
+	refreshRevision,
 	onTagToggle,
 	onOpenSource,
 	onOpenMenu,
@@ -68,6 +76,15 @@ export const TimelineEntry: React.FC<TimelineEntryProps> = ({
 						<ObsidianIcon iconId="link" />
 						<span>{getSourceContextLabel(entry.sourceContext)}</span>
 					</button>
+				)}
+
+				{entry.sourceContext && showLinkedSourcePreview && (
+					<LinkedSourcePreview
+						entry={entry}
+						language={language}
+						refreshRevision={refreshRevision}
+						onOpenSource={onOpenSource}
+					/>
 				)}
 
 				{entry.tags.length > 0 && (

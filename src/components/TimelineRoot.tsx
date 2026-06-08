@@ -371,30 +371,34 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 				</div>
 
 				{filteredItems.length === 0 ? (
-						<TimelineEmptyState
-							language={language}
-							hasTimelineEntries={allItems.length > 0}
-							isCurrentSourceFilter={filters.sourceMode === "current"}
-							onCreateCheckIn={handleCreateToggle}
-						/>
+					<TimelineEmptyState
+						language={language}
+						hasTimelineEntries={allItems.length > 0}
+						isCurrentSourceFilter={filters.sourceMode === "current"}
+						onCreateCheckIn={handleCreateToggle}
+					/>
 				) : (
-						<TimelineList
-							items={filteredItems}
-							today={today}
-							language={language}
-							selectedTag={filters.selectedTag}
-							renderMarkdown={
-								plugin.settings.renderTimelineContentMarkdown
-							}
-								onTagToggle={handleTagToggle}
-								onOpenSource={(item) => {
-									void handleOpenLinkedSource(item);
-								}}
-								onOpenMenu={handleOpenMenu}
-								onTaskToggle={(item, taskIndex, checked) => {
-								void handleTaskToggle(item, taskIndex, checked);
-							}}
-						/>
+					<TimelineList
+						items={filteredItems}
+						today={today}
+						language={language}
+						selectedTag={filters.selectedTag}
+						renderMarkdown={
+							plugin.settings.renderTimelineContentMarkdown
+						}
+						showLinkedSourcePreview={
+							plugin.settings.showLinkedSourcePreview
+						}
+						refreshRevision={refreshRevision}
+						onTagToggle={handleTagToggle}
+						onOpenSource={(item) => {
+							void handleOpenLinkedSource(item);
+						}}
+						onOpenMenu={handleOpenMenu}
+						onTaskToggle={(item, taskIndex, checked) => {
+							void handleTaskToggle(item, taskIndex, checked);
+						}}
+					/>
 				)}
 			</div>
 		</div>

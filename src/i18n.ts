@@ -19,6 +19,8 @@ type TranslationKey =
 	| "settings.timelineView.heading"
 	| "settings.renderMarkdown.name"
 	| "settings.renderMarkdown.desc"
+	| "settings.linkedSourcePreview.name"
+	| "settings.linkedSourcePreview.desc"
 	| "settings.dotColor.name"
 	| "settings.dotColor.desc"
 	| "settings.lineColor.name"
@@ -70,6 +72,10 @@ type TranslationKey =
 	| "timeline.entry"
 	| "timeline.entries"
 	| "timeline.invalidMetadata"
+	| "timeline.linkedSource"
+	| "timeline.linkedSourcePreview"
+	| "timeline.linkedSourceEmpty"
+	| "timeline.linkedSourceMissing"
 	| "menu.openLinkedSource"
 	| "notice.checkInCreated"
 	| "notice.saveFailed"
@@ -102,6 +108,8 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"settings.timelineView.heading": "Timeline view",
 		"settings.renderMarkdown.name": "Render content as Markdown",
 		"settings.renderMarkdown.desc": "Render timeline entry content with Obsidian Markdown rendering. When disabled, content is shown as plain text.",
+		"settings.linkedSourcePreview.name": "Show linked source preview",
+		"settings.linkedSourcePreview.desc": "Show a short preview of linked Markdown files inside timeline entries.",
 		"settings.dotColor.name": "Timeline dot color",
 		"settings.dotColor.desc": "Choose a custom color for timeline dots.",
 		"settings.lineColor.name": "Timeline line color",
@@ -153,6 +161,10 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"timeline.entry": "entry",
 		"timeline.entries": "entries",
 		"timeline.invalidMetadata": "{count} timeline {entryWord} have invalid metadata and were skipped.",
+		"timeline.linkedSource": "Linked source",
+		"timeline.linkedSourcePreview": "Linked source preview",
+		"timeline.linkedSourceEmpty": "Linked source has no previewable content.",
+		"timeline.linkedSourceMissing": "Linked source is unavailable.",
 		"menu.openLinkedSource": "Open linked source",
 		"notice.checkInCreated": "1 checked in!",
 		"notice.saveFailed": "Failed to save check-in.",
@@ -184,6 +196,8 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"settings.timelineView.heading": "Giao diện timeline",
 		"settings.renderMarkdown.name": "Hiển thị nội dung bằng Markdown",
 		"settings.renderMarkdown.desc": "Render nội dung entry bằng Markdown của Obsidian. Khi tắt, nội dung hiển thị dạng văn bản thường.",
+		"settings.linkedSourcePreview.name": "Hiển thị xem trước nguồn liên kết",
+		"settings.linkedSourcePreview.desc": "Hiển thị đoạn xem trước ngắn của file Markdown được liên kết trong entry timeline.",
 		"settings.dotColor.name": "Màu dot timeline",
 		"settings.dotColor.desc": "Chọn màu tùy chỉnh cho dot timeline.",
 		"settings.lineColor.name": "Màu line timeline",
@@ -235,6 +249,10 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"timeline.entry": "mục",
 		"timeline.entries": "mục",
 		"timeline.invalidMetadata": "{count} {entryWord} timeline có metadata không hợp lệ và đã bị bỏ qua.",
+		"timeline.linkedSource": "Nguồn liên kết",
+		"timeline.linkedSourcePreview": "Xem trước nguồn liên kết",
+		"timeline.linkedSourceEmpty": "Nguồn liên kết chưa có nội dung để xem trước.",
+		"timeline.linkedSourceMissing": "Không tìm thấy nguồn liên kết.",
 		"menu.openLinkedSource": "Mở nguồn liên kết",
 		"notice.checkInCreated": "Đã tạo 1 check-in!",
 		"notice.saveFailed": "Không thể lưu check-in.",

@@ -162,6 +162,18 @@ export class TimelineSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
+			.setName(t(language, "settings.linkedSourcePreview.name"))
+			.setDesc(t(language, "settings.linkedSourcePreview.desc"))
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.showLinkedSourcePreview)
+					.onChange(async (value) => {
+						this.plugin.settings.showLinkedSourcePreview = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
 			.setName(t(language, "settings.dotColor.name"))
 			.setDesc(t(language, "settings.dotColor.desc"))
 			.addColorPicker((picker) =>

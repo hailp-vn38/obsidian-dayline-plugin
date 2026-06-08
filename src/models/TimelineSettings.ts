@@ -13,6 +13,7 @@ export interface TimelinePluginSettings {
 	defaultView: TimelineDefaultView;
 	timeFormat: TimelineTimeFormat;
 	renderTimelineContentMarkdown: boolean;
+	showLinkedSourcePreview: boolean;
 	timelineDotColor: string;
 	timelineLineColor: string;
 	showMetadataInReadingView: boolean;

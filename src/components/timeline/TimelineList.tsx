@@ -11,6 +11,8 @@ interface TimelineListProps {
 	language: TimelineLanguage;
 	selectedTag: string;
 	renderMarkdown: boolean;
+	showLinkedSourcePreview: boolean;
+	refreshRevision: number;
 	onTagToggle: (tag: string) => void;
 	onOpenSource: (item: TimelineIndexItem) => void;
 	onOpenMenu: (event: React.MouseEvent, item: TimelineIndexItem) => void;
@@ -27,6 +29,8 @@ export const TimelineList: React.FC<TimelineListProps> = ({
 	language,
 	selectedTag,
 	renderMarkdown,
+	showLinkedSourcePreview,
+	refreshRevision,
 	onTagToggle,
 	onOpenSource,
 	onOpenMenu,
@@ -50,8 +54,11 @@ export const TimelineList: React.FC<TimelineListProps> = ({
 							entry={item}
 							isFirst={isFirst}
 							isLast={isLast}
+							language={language}
 							selectedTag={selectedTag}
 							renderMarkdown={renderMarkdown}
+							showLinkedSourcePreview={showLinkedSourcePreview}
+							refreshRevision={refreshRevision}
 							onTagToggle={onTagToggle}
 							onOpenSource={onOpenSource}
 							onOpenMenu={onOpenMenu}

@@ -8,6 +8,7 @@ export const DEFAULT_SETTINGS: TimelinePluginSettings = {
 	defaultView: "today",
 	timeFormat: "24h",
 	renderTimelineContentMarkdown: false,
+	showLinkedSourcePreview: false,
 	timelineDotColor: "",
 	timelineLineColor: "",
 	showMetadataInReadingView: true,
