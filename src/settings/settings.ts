@@ -9,6 +9,7 @@ export const DEFAULT_SETTINGS: TimelinePluginSettings = {
 	timeFormat: "24h",
 	renderTimelineContentMarkdown: false,
 	showLinkedSourcePreview: false,
+	writeTagsAsObsidianTags: false,
 	timelineDotColor: "",
 	timelineLineColor: "",
 	showMetadataInReadingView: true,

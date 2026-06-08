@@ -26,6 +26,7 @@ export class EditTimelineEntryModal extends Modal {
 			entry.markdown,
 			entry.meta.attachments,
 			entry.meta.sourceContext,
+			entry.meta.tags,
 		);
 	}
 

@@ -156,6 +156,7 @@ function extractTextPreview(blockMarkdown: string): string {
 		.replace(/^##\s+.*$/m, "")
 		.replace(/<!--\s*timeline-entry\s*[\s\S]*?\s*-->/, "")
 		.replace(/^\s*Context:\s+\[\[[^\]]+\]\]\s*$/gm, "")
+		.replace(/^\s*Dayline tags:\s+(?:#[^\s#]+(?:\s+|$))+\s*$/gm, "")
 		.replace(/^!\[\[(.*?)\]\]\s*$/gm, "")
 		.replace(/^\[\[(.*?)\]\]\s*$/gm, "")
 		.trim();
@@ -168,6 +169,7 @@ function createIndexItem(file: TFile, entry: ReturnType<typeof parseTimelineEntr
 		entry.markdown,
 		entry.meta.attachments,
 		entry.meta.sourceContext,
+		entry.meta.tags,
 	);
 
 	return {

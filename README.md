@@ -58,6 +58,14 @@ Slept a bit less than usual, but energy is still decent.
 
 `sourceContext` is optional. Older entries without it remain valid. When source context exists, Dayline also writes a normal Obsidian wikilink outside the hidden JSON block so Backlinks, Graph view, Page preview, and Obsidian's link handling can see the relationship.
 
+If **Write Dayline tags as Obsidian tags** is enabled, Dayline also writes entry tags as a native Markdown tag line outside the hidden JSON block:
+
+```md
+Dayline tags: #health #morning
+```
+
+Obsidian indexes these tags on the Dayline day file. Dayline still treats the hidden JSON `tags` array as the source of truth for entry-level filtering.
+
 ## Linked check-ins
 
 Linked check-ins connect a Dayline entry back to a note or file in your vault. Use them when a check-in belongs to a project note, meeting note, reading note, or any note you want to revisit later.
@@ -335,6 +343,7 @@ Use these properties in an Obsidian Base to inspect Dayline day files:
 | `Time format` | Yes | `24-hour` | Display format for entry times. |
 | `Render content as Markdown` | No | Off | Uses Obsidian Markdown rendering in timeline entries. |
 | `Show linked source preview` | No | Off | Shows a short preview of linked Markdown files in timeline entries. |
+| `Write Dayline tags as Obsidian tags` | No | Off | Writes entry tags as native Markdown tags in Dayline day files. |
 | `Show timeline metadata in reading view` | No | On | Shows hidden entry metadata in Dayline files. |
 | `Metadata reading view mode` | No | `Summary` | Controls how metadata is shown in Reading view. |
 | `Add Dayline properties` | No | On | Maintains optional `dayline_*` aggregate properties. |

@@ -68,6 +68,8 @@ export class TimelineRepository {
 			draft.content,
 			allAttachments,
 			meta.sourceContext,
+			meta.tags,
+			this.settings.writeTagsAsObsidianTags,
 		);
 		const entryBlock = createTimelineEntryBlock(meta, markdownContent);
 		const existingContent = await this.app.vault.cachedRead(file);
@@ -143,6 +145,8 @@ export class TimelineRepository {
 				input.content,
 				target.meta.attachments,
 				nextMeta.sourceContext,
+				nextMeta.tags,
+				this.settings.writeTagsAsObsidianTags,
 			),
 		);
 		const nextMarkdown = replaceEntryBlock(markdown, entryId, nextBlock);
@@ -179,6 +183,8 @@ export class TimelineRepository {
 				content,
 				target.meta.attachments,
 				nextMeta.sourceContext,
+				nextMeta.tags,
+				this.settings.writeTagsAsObsidianTags,
 			),
 		);
 		const nextMarkdown = replaceEntryBlock(markdown, entryId, nextBlock);
@@ -206,6 +212,7 @@ export class TimelineRepository {
 			entry.markdown,
 			entry.meta.attachments,
 			entry.meta.sourceContext,
+			entry.meta.tags,
 		);
 		const nextContent = toggleTaskAtIndex(content, taskIndex, checked);
 		if (nextContent === null) {
@@ -240,6 +247,7 @@ export class TimelineRepository {
 			target.markdown,
 			target.meta.attachments,
 			target.meta.sourceContext,
+			target.meta.tags,
 		);
 		await this.createTextEntry(
 			{
@@ -265,6 +273,51 @@ export class TimelineRepository {
 			await updateTimelineFrontmatter(
 				file,
 				entries,
+				getLastUpdatedAt(entries),
+				this.settings,
+			);
+		}
+	}
+
+	async rewriteAllEntryMarkdownForCurrentSettings(): Promise<void> {
+		const timelineFolder = normalizeFolder(this.settings.timelineFolder);
+		const files = this.app.vault
+			.getFiles()
+			.filter((file) => file.extension === "md" && file.path.startsWith(`${timelineFolder}/`));
+
+		for (const file of files) {
+			const markdown = await this.app.vault.cachedRead(file);
+			const entries = parseTimelineEntries(markdown);
+			let nextMarkdown = markdown;
+
+			for (const entry of entries) {
+				const nextMeta = stripLegacyTitle(entry.meta);
+				const content = extractEditableMarkdownContent(
+					entry.markdown,
+					entry.meta.attachments,
+					entry.meta.sourceContext,
+					entry.meta.tags,
+				);
+				const nextBlock = createTimelineEntryBlock(
+					nextMeta,
+					combineContentAndEmbeds(
+						content,
+						entry.meta.attachments,
+						entry.meta.sourceContext,
+						entry.meta.tags,
+						this.settings.writeTagsAsObsidianTags,
+					),
+				);
+				nextMarkdown = replaceEntryBlock(nextMarkdown, entry.meta.id, nextBlock);
+			}
+
+			if (nextMarkdown !== markdown) {
+				await this.app.vault.modify(file, nextMarkdown);
+			}
+
+			await updateTimelineFrontmatter(
+				file,
+				parseTimelineEntries(nextMarkdown),
 				getLastUpdatedAt(entries),
 				this.settings,
 			);
@@ -315,12 +368,15 @@ function combineContentAndEmbeds(
 	content: string,
 	attachments: TimelineEntryMeta["attachments"],
 	sourceContext?: TimelineEntryMeta["sourceContext"],
+	tags: string[] = [],
+	writeTagsAsObsidianTags = false,
 ): string {
 	const trimmedContent = content.trim();
 	const embedLines = buildAttachmentEmbeds(attachments);
 	const contextLine = sourceContext ? buildSourceContextLine(sourceContext) : "";
+	const tagLine = writeTagsAsObsidianTags ? buildObsidianTagsLine(tags) : "";
 
-	return [contextLine, trimmedContent, ...embedLines].filter(Boolean).join("\n\n");
+	return [contextLine, tagLine, trimmedContent, ...embedLines].filter(Boolean).join("\n\n");
 }
 
 function determineEntryType(
@@ -350,6 +406,7 @@ export function extractEditableMarkdownContent(
 	blockMarkdown: string,
 	attachments: TimelineAttachment[],
 	sourceContext?: TimelineEntryMeta["sourceContext"],
+	tags: string[] = [],
 ): string {
 	let body = blockMarkdown
 		.replace(/^##\s+.*$/m, "")
@@ -357,6 +414,7 @@ export function extractEditableMarkdownContent(
 		.trim();
 
 	body = removeSourceContextLine(body, sourceContext);
+	body = removeObsidianTagsLine(body, tags);
 
 	for (const embed of buildAttachmentEmbeds(attachments)) {
 		const pattern = new RegExp(
@@ -367,6 +425,40 @@ export function extractEditableMarkdownContent(
 	}
 
 	return body.replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function buildObsidianTagsLine(tags: string[]): string {
+	const obsidianTags = Array.from(
+		new Set(
+			tags
+				.map((tag) => formatObsidianTag(tag))
+				.filter(Boolean),
+		),
+	);
+	return obsidianTags.length > 0 ? `Dayline tags: ${obsidianTags.join(" ")}` : "";
+}
+
+function formatObsidianTag(tag: string): string {
+	const normalized = tag
+		.trim()
+		.replace(/^#+/, "")
+		.split("/")
+		.map((segment) => segment.replace(/[^A-Za-z0-9_-]+/g, ""))
+		.filter(Boolean)
+		.join("/");
+
+	return normalized ? `#${normalized}` : "";
+}
+
+function removeObsidianTagsLine(body: string, tags: string[]): string {
+	const exactLine = buildObsidianTagsLine(tags);
+	const withoutExactLine = exactLine
+		? body.replace(new RegExp(`^\\s*${escapeRegExp(exactLine)}\\s*$\\n?`, "gm"), "")
+		: body;
+
+	return withoutExactLine
+		.replace(/^\s*Dayline tags:\s+(?:#[^\s#]+(?:\s+|$))+\s*$/gm, "")
+		.trim();
 }
 
 function removeSourceContextLine(

@@ -174,6 +174,21 @@ export class TimelineSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
+			.setName(t(language, "settings.writeTagsAsObsidianTags.name"))
+			.setDesc(t(language, "settings.writeTagsAsObsidianTags.desc"))
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.writeTagsAsObsidianTags)
+					.onChange(async (value) => {
+						this.plugin.settings.writeTagsAsObsidianTags = value;
+						await this.plugin.saveSettings();
+						await this.plugin.timelineRepository.rewriteAllEntryMarkdownForCurrentSettings();
+						await this.plugin.timelineIndex.rebuild();
+						await this.plugin.refreshTimelineViews();
+					}),
+			);
+
+		new Setting(containerEl)
 			.setName(t(language, "settings.dotColor.name"))
 			.setDesc(t(language, "settings.dotColor.desc"))
 			.addColorPicker((picker) =>

@@ -21,6 +21,8 @@ type TranslationKey =
 	| "settings.renderMarkdown.desc"
 	| "settings.linkedSourcePreview.name"
 	| "settings.linkedSourcePreview.desc"
+	| "settings.writeTagsAsObsidianTags.name"
+	| "settings.writeTagsAsObsidianTags.desc"
 	| "settings.dotColor.name"
 	| "settings.dotColor.desc"
 	| "settings.lineColor.name"
@@ -110,6 +112,8 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"settings.renderMarkdown.desc": "Render timeline entry content with Obsidian Markdown rendering. When disabled, content is shown as plain text.",
 		"settings.linkedSourcePreview.name": "Show linked source preview",
 		"settings.linkedSourcePreview.desc": "Show a short preview of linked Markdown files inside timeline entries.",
+		"settings.writeTagsAsObsidianTags.name": "Write Dayline tags as Obsidian tags",
+		"settings.writeTagsAsObsidianTags.desc": "Write entry tags as native Markdown tags so Obsidian can index them.",
 		"settings.dotColor.name": "Timeline dot color",
 		"settings.dotColor.desc": "Choose a custom color for timeline dots.",
 		"settings.lineColor.name": "Timeline line color",
@@ -198,6 +202,8 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"settings.renderMarkdown.desc": "Render nội dung entry bằng Markdown của Obsidian. Khi tắt, nội dung hiển thị dạng văn bản thường.",
 		"settings.linkedSourcePreview.name": "Hiển thị xem trước nguồn liên kết",
 		"settings.linkedSourcePreview.desc": "Hiển thị đoạn xem trước ngắn của file Markdown được liên kết trong entry timeline.",
+		"settings.writeTagsAsObsidianTags.name": "Ghi tag Dayline thành tag Obsidian",
+		"settings.writeTagsAsObsidianTags.desc": "Ghi tag của entry thành tag Markdown native để Obsidian có thể index.",
 		"settings.dotColor.name": "Màu dot timeline",
 		"settings.dotColor.desc": "Chọn màu tùy chỉnh cho dot timeline.",
 		"settings.lineColor.name": "Màu line timeline",
