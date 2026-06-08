@@ -1,6 +1,7 @@
-import { Modal, Notice, Setting, TextComponent } from "obsidian";
+import { Modal, Notice, Setting, TextComponent, setIcon } from "obsidian";
 
 import type DaylinePlugin from "../main";
+import type { TimelineAttachment } from "../models/TimelineAttachment";
 import type { ParsedTimelineEntry } from "../models/TimelineEntry";
 import {
 	extractEditableMarkdownContent,
@@ -10,9 +11,10 @@ import { parseTags } from "../utils/tags";
 import { getErrorMessage } from "../views/timeline/utils/timelineErrors";
 
 export class EditTimelineEntryModal extends Modal {
-	private timeValue: string;
 	private tagsValue: string;
 	private contentValue: string;
+	private attachmentsValue: TimelineAttachment[];
+	private attachmentsEl: HTMLElement | null = null;
 
 	constructor(
 		private readonly plugin: DaylinePlugin,
@@ -20,8 +22,8 @@ export class EditTimelineEntryModal extends Modal {
 		private readonly entry: ParsedTimelineEntry,
 	) {
 		super(plugin.app);
-		this.timeValue = entry.meta.time;
 		this.tagsValue = entry.meta.tags.join(", ");
+		this.attachmentsValue = [...entry.meta.attachments];
 		this.contentValue = extractEditableMarkdownContent(
 			entry.markdown,
 			entry.meta.attachments,
@@ -36,16 +38,6 @@ export class EditTimelineEntryModal extends Modal {
 		contentEl.addClass("timeline-edit-modal");
 
 		contentEl.createEl("h2", { text: "Edit timeline entry" });
-
-		const timeInput = createTextSetting(
-			contentEl,
-			"Time",
-			this.timeValue,
-			(value) => {
-				this.timeValue = value;
-			},
-		);
-		timeInput.inputEl.type = "time";
 
 		const tagsInput = createTextSetting(
 			contentEl,
@@ -68,6 +60,11 @@ export class EditTimelineEntryModal extends Modal {
 			this.contentValue = textarea.value;
 		});
 
+		this.attachmentsEl = contentEl.createDiv({
+			cls: "timeline-edit-attachments",
+		});
+		this.renderAttachments();
+
 		const actions = contentEl.createDiv({ cls: "timeline-modal-actions" });
 		const saveButton = actions.createEl("button", {
 			text: "Save",
@@ -76,11 +73,6 @@ export class EditTimelineEntryModal extends Modal {
 		const cancelButton = actions.createEl("button", { text: "Cancel" });
 
 		saveButton.addEventListener("click", () => {
-			if (!/^\d{2}:\d{2}$/.test(this.timeValue)) {
-				new Notice("Enter a valid time.");
-				return;
-			}
-
 			saveButton.disabled = true;
 			void this.handleSave(saveButton);
 		});
@@ -95,9 +87,9 @@ export class EditTimelineEntryModal extends Modal {
 	private async handleSave(saveButton: HTMLButtonElement): Promise<void> {
 		try {
 			const input: TimelineEntryEditInput = {
-				time: this.timeValue,
 				content: this.contentValue,
 				tags: parseTags(this.tagsValue),
+				attachments: this.attachmentsValue,
 			};
 			await this.plugin.timelineRepository.updateEntry(
 				this.sourcePath,
@@ -113,6 +105,77 @@ export class EditTimelineEntryModal extends Modal {
 			saveButton.disabled = false;
 		}
 	}
+
+	private renderAttachments(): void {
+		if (!this.attachmentsEl) {
+			return;
+		}
+
+		this.attachmentsEl.empty();
+		if (this.attachmentsValue.length === 0) {
+			return;
+		}
+
+		this.attachmentsEl.createDiv({
+			cls: "timeline-edit-attachments-label",
+			text: "Attachments",
+		});
+		this.attachmentsEl.createDiv({
+			cls: "timeline-edit-attachments-desc",
+			text: "Remove attachments from this entry. Files remain in the vault.",
+		});
+
+		const listEl = this.attachmentsEl.createDiv({
+			cls: "timeline-edit-attachment-list",
+		});
+		this.attachmentsValue.forEach((attachment) => {
+			const rowEl = listEl.createDiv({
+				cls: "timeline-edit-attachment-row",
+			});
+			const iconEl = rowEl.createSpan({
+				cls: "timeline-edit-attachment-icon",
+			});
+			setIcon(iconEl, getAttachmentIcon(attachment));
+
+			const bodyEl = rowEl.createDiv({
+				cls: "timeline-edit-attachment-body",
+			});
+			bodyEl.createDiv({
+				cls: "timeline-edit-attachment-name",
+				text: attachment.name ?? attachment.path.split("/").pop() ?? attachment.path,
+			});
+			bodyEl.createDiv({
+				cls: "timeline-edit-attachment-path",
+				text: attachment.path,
+			});
+
+			const removeButton = rowEl.createEl("button", {
+				cls: "timeline-edit-attachment-remove",
+				attr: {
+					"aria-label": `Remove ${attachment.name ?? attachment.path}`,
+				},
+			});
+			setIcon(removeButton, "x");
+			removeButton.addEventListener("click", () => {
+				this.attachmentsValue = this.attachmentsValue.filter(
+					(item) => item.id !== attachment.id,
+				);
+				this.renderAttachments();
+			});
+		});
+	}
+}
+
+function getAttachmentIcon(attachment: TimelineAttachment): string {
+	if (attachment.type === "image") {
+		return "image";
+	}
+
+	if (attachment.type === "audio") {
+		return "audio-lines";
+	}
+
+	return "paperclip";
 }
 
 function createTextSetting(

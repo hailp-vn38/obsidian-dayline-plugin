@@ -22,9 +22,9 @@ export interface TimelineDayData {
 }
 
 export interface TimelineEntryEditInput {
-	time: string;
 	content: string;
 	tags: string[];
+	attachments: TimelineAttachment[];
 }
 
 export class TimelineRepository {
@@ -133,17 +133,27 @@ export class TimelineRepository {
 
 		const updatedAt = toIsoString(new Date());
 		const baseMeta = stripLegacyTitle(target.meta);
+		const attachmentsChanged = haveAttachmentsChanged(
+			target.meta.attachments,
+			input.attachments,
+		);
 		const nextMeta: TimelineEntryMeta = {
 			...baseMeta,
-			time: input.time,
+			type: attachmentsChanged
+				? determineEntryType(
+					input.content,
+					input.attachments.map((attachment) => attachment.type),
+				)
+				: baseMeta.type,
 			tags: input.tags,
+			attachments: input.attachments,
 			updatedAt,
 		};
 		const nextBlock = createTimelineEntryBlock(
 			nextMeta,
 			combineContentAndEmbeds(
 				input.content,
-				target.meta.attachments,
+				nextMeta.attachments,
 				nextMeta.sourceContext,
 				nextMeta.tags,
 				this.settings.writeTagsAsObsidianTags,
@@ -400,6 +410,20 @@ function stripLegacyTitle(meta: TimelineEntryMeta): TimelineEntryMeta {
 	const cleaned = { ...(meta as TimelineEntryMeta & { title?: string }) };
 	delete (cleaned as { title?: string }).title;
 	return cleaned;
+}
+
+function haveAttachmentsChanged(
+	previousAttachments: TimelineAttachment[],
+	nextAttachments: TimelineAttachment[],
+): boolean {
+	if (previousAttachments.length !== nextAttachments.length) {
+		return true;
+	}
+
+	return previousAttachments.some((attachment, index) => {
+		const nextAttachment = nextAttachments[index];
+		return !nextAttachment || attachment.id !== nextAttachment.id;
+	});
 }
 
 export function extractEditableMarkdownContent(

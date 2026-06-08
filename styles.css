@@ -917,6 +917,105 @@ input.timeline-composer-tag-input:focus-visible {
 	font: inherit;
 }
 
+.timeline-edit-attachments {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-top: 12px;
+}
+
+.timeline-edit-attachments-label {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--text-normal);
+}
+
+.timeline-edit-attachments-desc {
+	font-size: 12px;
+	line-height: 1.35;
+	color: var(--text-muted);
+}
+
+.timeline-edit-attachment-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.timeline-edit-attachment-row {
+	display: grid;
+	grid-template-columns: 24px minmax(0, 1fr) 28px;
+	gap: 8px;
+	align-items: center;
+	padding: 6px 8px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 8px;
+	background: var(--background-secondary);
+}
+
+.timeline-edit-attachment-icon,
+.timeline-edit-attachment-remove {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.timeline-edit-attachment-icon {
+	color: var(--text-muted);
+}
+
+.timeline-edit-attachment-icon svg {
+	width: 16px;
+	height: 16px;
+}
+
+.timeline-edit-attachment-body {
+	min-width: 0;
+}
+
+.timeline-edit-attachment-name,
+.timeline-edit-attachment-path {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.timeline-edit-attachment-name {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--text-normal);
+}
+
+.timeline-edit-attachment-path {
+	margin-top: 2px;
+	font-size: 11px;
+	color: var(--text-faint);
+}
+
+.timeline-edit-attachment-remove {
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 0 !important;
+	border-radius: 8px;
+	background: transparent !important;
+	color: var(--text-muted);
+	box-shadow: none !important;
+	cursor: pointer;
+}
+
+.timeline-edit-attachment-remove:hover,
+.timeline-edit-attachment-remove:focus {
+	background: var(--background-modifier-hover) !important;
+	color: var(--text-normal);
+	box-shadow: none !important;
+}
+
+.timeline-edit-attachment-remove svg {
+	width: 15px;
+	height: 15px;
+}
+
 .timeline-modal-actions {
 	display: flex;
 	gap: 8px;
