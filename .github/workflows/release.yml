@@ -1,0 +1,91 @@
+name: Release
+
+"on":
+  push:
+    tags:
+      - "*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, for example 1.2.7"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    env:
+      TAG_NAME: ${{ inputs.tag || github.ref_name }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref_name }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate release metadata
+        run: |
+          node <<'NODE'
+          const tag = process.env.TAG_NAME;
+          const manifest = require("./manifest.json");
+          const packageJson = require("./package.json");
+          const versions = require("./versions.json");
+
+          if (!/^\d+\.\d+\.\d+$/.test(tag)) {
+            throw new Error(`Release tag must be SemVer without a leading v: ${tag}`);
+          }
+
+          if (manifest.version !== tag) {
+            throw new Error(`manifest.json version ${manifest.version} does not match tag ${tag}`);
+          }
+
+          if (packageJson.version !== tag) {
+            throw new Error(`package.json version ${packageJson.version} does not match tag ${tag}`);
+          }
+
+          if (versions[tag] !== manifest.minAppVersion) {
+            throw new Error(`versions.json entry for ${tag} must equal minAppVersion ${manifest.minAppVersion}`);
+          }
+          NODE
+
+      - name: Build
+        run: npm run build
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Generate artifact attestations
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
+
+      - name: Create or update GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release upload "$TAG_NAME" main.js manifest.json styles.css --clobber
+          else
+            gh release create "$TAG_NAME" main.js manifest.json styles.css \
+              --title "v$TAG_NAME" \
+              --notes "Release v$TAG_NAME" \
+              --verify-tag
+          fi

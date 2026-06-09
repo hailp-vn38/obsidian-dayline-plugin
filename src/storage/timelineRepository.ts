@@ -14,6 +14,7 @@ import { ensureNestedFolder } from "./folder";
 import { updateTimelineFrontmatter } from "./frontmatter";
 import { createTimelineDayTemplate, createTimelineEntryBlock } from "./timelineFile";
 import { getTimelineFilePath } from "./timelinePaths";
+import { getMarkdownFilesInFolder } from "./vaultFiles";
 
 export interface TimelineDayData {
 	date: string;
@@ -273,10 +274,7 @@ export class TimelineRepository {
 	}
 
 	async refreshAllDayProperties(): Promise<void> {
-		const timelineFolder = normalizeFolder(this.settings.timelineFolder);
-		const files = this.app.vault
-			.getFiles()
-			.filter((file) => file.extension === "md" && file.path.startsWith(`${timelineFolder}/`));
+		const files = getMarkdownFilesInFolder(this.app, this.settings.timelineFolder);
 
 		for (const file of files) {
 			const entries = await this.readEntriesFromFile(file);
@@ -290,10 +288,7 @@ export class TimelineRepository {
 	}
 
 	async rewriteAllEntryMarkdownForCurrentSettings(): Promise<void> {
-		const timelineFolder = normalizeFolder(this.settings.timelineFolder);
-		const files = this.app.vault
-			.getFiles()
-			.filter((file) => file.extension === "md" && file.path.startsWith(`${timelineFolder}/`));
+		const files = getMarkdownFilesInFolder(this.app, this.settings.timelineFolder);
 
 		for (const file of files) {
 			const markdown = await this.app.vault.cachedRead(file);
@@ -519,10 +514,6 @@ function getLastUpdatedAt(entries: ParsedTimelineEntry[]): string {
 	return entries
 		.map((entry) => entry.meta.updatedAt || entry.meta.createdAt)
 		.sort((left, right) => right.localeCompare(left))[0] ?? toIsoString(new Date());
-}
-
-function normalizeFolder(folder: string): string {
-	return folder.replace(/\/+$/, "");
 }
 
 function escapeRegExp(value: string): string {

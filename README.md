@@ -68,6 +68,23 @@ Dayline tags: #health #morning
 
 Obsidian indexes these tags on the Dayline day file. Dayline still treats the hidden JSON `tags` array as the source of truth for entry-level filtering.
 
+## Privacy and permissions
+
+Dayline is local-first. It does not send note content, filenames, metadata, attachments, audio, or clipboard data over the network.
+
+Vault access:
+
+- Dayline reads and writes daily timeline files inside the configured timeline folder, `Timeline/` by default.
+- Dayline saves attachment files inside the configured attachment folder, `Timeline Attachments/` by default.
+- Dayline keeps an in-memory index of Markdown files inside the configured timeline folder so the timeline view, filters, embedded timelines, and day-file properties can stay current.
+- Linked check-ins store the vault path and link text for the note or file the user explicitly links from the active editor, file menu, or timeline action.
+
+Clipboard access:
+
+- When the user pastes into the composer or quick check-in modal, Dayline inspects the paste event for image items and attaches only pasted images to the draft.
+- Dayline does not read the system clipboard in the background.
+- The metadata reading-view panel includes **Copy JSON** buttons that write the displayed entry metadata to the clipboard only after the user selects the button.
+
 ## Linked check-ins
 
 Linked check-ins connect a Dayline entry back to a note or file in your vault. Use them when a check-in belongs to a project note, meeting note, reading note, or any note you want to revisit later.

@@ -4,6 +4,7 @@ import type { TimelineIndexItem } from "../models/TimelineEntry";
 import type { TimelinePluginSettings } from "../models/TimelineSettings";
 import { countMalformedTimelineEntryMetas, parseTimelineEntries } from "../parser/parseTimelineEntries";
 import { extractEditableMarkdownContent } from "../storage/timelineRepository";
+import { getMarkdownFilesInFolder } from "../storage/vaultFiles";
 
 import { TimelineIndex } from "./TimelineIndex";
 
@@ -21,8 +22,7 @@ export class TimelineIndexService {
 		this.index.clear();
 		this.fileCache.clear();
 		this.malformedEntryCount = 0;
-		const timelineFolder = normalizeFolder(this.settings.timelineFolder);
-		const files = this.app.vault.getFiles().filter((file) => isTimelineFile(file, timelineFolder));
+		const files = getMarkdownFilesInFolder(this.app, this.settings.timelineFolder);
 
 		for (const file of files) {
 			await this.readAndCacheFile(file);
