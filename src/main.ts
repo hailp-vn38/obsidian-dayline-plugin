@@ -1,4 +1,11 @@
-import { MarkdownView, Notice, Plugin, TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
+import {
+	MarkdownView,
+	Notice,
+	Plugin,
+	TAbstractFile,
+	TFile,
+	WorkspaceLeaf,
+} from "obsidian";
 
 import { TimelineIndexService } from "./index/TimelineIndexService";
 import type { TimelineSourceContext } from "./models/TimelineEntry";
