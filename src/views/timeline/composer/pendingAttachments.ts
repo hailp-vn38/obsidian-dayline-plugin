@@ -1,7 +1,12 @@
 import type { PendingAttachmentInput } from "../../../storage/attachments";
 
 export interface PendingQuickAttachment extends PendingAttachmentInput {
+	id: string;
 	previewUrl?: string;
+}
+
+function createPendingAttachmentId(): string {
+	return `pending-${Date.now().toString(36)}-${Math.random().toString(16).slice(2)}`;
 }
 
 export async function createPendingAttachmentFromFile(
@@ -14,6 +19,7 @@ export async function createPendingAttachmentFromFile(
 			? URL.createObjectURL(file)
 			: undefined;
 	return {
+		id: createPendingAttachmentId(),
 		type: typeHint,
 		name: file.name,
 		mime: file.type,

@@ -52,6 +52,7 @@ export const TimelineEntry: React.FC<TimelineEntryProps> = ({
 					<span className="pt-entry-time">{entry.time}</span>
 					<div className="pt-entry-header-spacer" />
 					<button
+						type="button"
 						className="pt-entry-menu"
 						onClick={(e: React.MouseEvent) => onOpenMenu(e, entry)}
 					>

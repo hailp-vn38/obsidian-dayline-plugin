@@ -14,9 +14,6 @@ import { createTimelineEntryActions } from "../views/timeline/actions/timelineEn
 import { openTimelineEntryMenu } from "../views/timeline/actions/timelineMenu";
 import { mapPendingAttachmentsToInputs } from "../views/timeline/composer/composerAttachments";
 import {
-	addComposerTag,
-	commitComposerTagDraft,
-	removeComposerTag,
 	hasComposerDraftChanges,
 	getComposerTags,
 } from "../views/timeline/composer/composerDraft";
@@ -42,6 +39,18 @@ interface TimelineRootProps {
 	refreshRevision: number;
 }
 
+function createInitialFilterState(): TimelineFilterState {
+	const today = formatDateForFile(getNow());
+	return {
+		searchTerm: "",
+		selectedTag: "",
+		sourceMode: "all",
+		datePreset: "today",
+		customDate: today,
+		customEndDate: today,
+	};
+}
+
 export const TimelineRoot: React.FC<TimelineRootProps> = ({
 	refreshRevision,
 }) => {
@@ -51,21 +60,21 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 		uiRevision,
 		draftState,
 		recordingState,
-		bumpUiRevision,
 		clearDraft,
+		setDraftContent,
+		setTagDraft,
+		commitTagDraft,
+		removeTag,
+		addTag,
+		removeAttachment,
 		addFiles,
 		pasteImages,
 		toggleRecording,
 	} = useComposerState();
 
-	const [filters, setFilters] = useState<TimelineFilterState>({
-		searchTerm: "",
-		selectedTag: "",
-		sourceMode: "all",
-		datePreset: "today",
-		customDate: formatDateForFile(getNow()),
-		customEndDate: formatDateForFile(getNow()),
-	});
+	const [filters, setFilters] = useState<TimelineFilterState>(
+		createInitialFilterState,
+	);
 
 	const [activePanel, setActivePanel] =
 		useState<TimelineActivePanel>(null);
@@ -191,24 +200,6 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 			customEndDate: value,
 		}));
 	}, []);
-
-	const handleCommitTagDraft = useCallback(() => {
-		return commitComposerTagDraft(draftState);
-	}, [draftState]);
-
-	const handleRemoveTag = useCallback(
-		(tag: string) => {
-			removeComposerTag(draftState, tag);
-		},
-		[draftState],
-	);
-
-	const handleAddTag = useCallback(
-		(tag: string) => {
-			addComposerTag(draftState, tag);
-		},
-		[draftState],
-	);
 
 	const handlePasteComposer = useCallback(
 		async (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
@@ -344,10 +335,12 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 					draftState={draftState}
 					recordingState={recordingState}
 					availableTags={availableTags}
-					onDraftRefresh={bumpUiRevision}
-					onCommitTagDraft={handleCommitTagDraft}
-					onRemoveTag={handleRemoveTag}
-					onAddTag={handleAddTag}
+					onContentChange={setDraftContent}
+					onTagDraftChange={setTagDraft}
+					onCommitTagDraft={commitTagDraft}
+					onRemoveTag={removeTag}
+					onAddTag={addTag}
+					onRemoveAttachment={removeAttachment}
 					onAddFiles={addFiles}
 					onPaste={handlePasteComposer}
 					onToggleRecording={() => {
@@ -361,18 +354,18 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 			<TimelineToolbar
 				filters={filters}
 				today={today}
-					language={language}
-					isSearchExpanded={activePanel === "search"}
-					isFilterExpanded={activePanel === "filter"}
-					availableTags={availableTags}
-					currentSourceLabel={currentSourceLabel}
-					onSearchInput={handleSearchInput}
-					onDatePresetChange={handleDatePresetChange}
-					onTagChange={handleTagChange}
-					onSourceModeChange={handleSourceModeChange}
-					onCustomDateChange={handleCustomDateChange}
-					onCustomEndDateChange={handleCustomEndDateChange}
-				/>
+				language={language}
+				isSearchExpanded={activePanel === "search"}
+				isFilterExpanded={activePanel === "filter"}
+				availableTags={availableTags}
+				currentSourceLabel={currentSourceLabel}
+				onSearchInput={handleSearchInput}
+				onDatePresetChange={handleDatePresetChange}
+				onTagChange={handleTagChange}
+				onSourceModeChange={handleSourceModeChange}
+				onCustomDateChange={handleCustomDateChange}
+				onCustomEndDateChange={handleCustomEndDateChange}
+			/>
 
 			<div className="timeline-list-section">
 				<div className="timeline-list-summary">

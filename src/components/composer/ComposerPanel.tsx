@@ -1,5 +1,4 @@
-/* eslint-disable react-hooks/immutability, obsidianmd/no-static-styles-assignment */
-import React, { useRef, useState } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import type {
 	ComposerDraftState,
 	ComposerFileTypeHint,
@@ -30,15 +29,22 @@ interface ComposerPanelProps {
 	draftState: ComposerDraftState;
 	recordingState: ComposerRecordingState;
 	availableTags: string[];
-	onDraftRefresh: () => void;
-	onCommitTagDraft: () => boolean;
+	onContentChange: (content: string) => void;
+	onTagDraftChange: (tagDraft: string) => void;
+	onCommitTagDraft: () => void;
 	onRemoveTag: (tag: string) => void;
 	onAddTag: (tag: string) => void;
+	onRemoveAttachment: (index: number) => void;
 	onAddFiles: (files: FileList | File[], typeHint: ComposerFileTypeHint) => void | Promise<void>;
 	onToggleRecording: () => void;
 	onPaste?: (event: React.ClipboardEvent<HTMLTextAreaElement>) => void | Promise<void>;
 	onCancel: () => void;
 	onSubmit: () => void | Promise<void>;
+}
+
+function syncTextareaHeight(input: HTMLTextAreaElement): void {
+	input.style.removeProperty("height");
+	input.style.height = `${Math.min(input.scrollHeight, 180)}px`;
 }
 
 export const ComposerPanel: React.FC<ComposerPanelProps> = (props) => {
@@ -62,13 +68,15 @@ export const ComposerPanel: React.FC<ComposerPanelProps> = (props) => {
 		.filter(Boolean)
 		.join(" ");
 
-	const onContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-		props.draftState.content = e.target.value;
-		props.onDraftRefresh();
+	useLayoutEffect(() => {
 		if (textareaRef.current) {
-			textareaRef.current.style.height = "auto";
-			textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 180)}px`;
+			syncTextareaHeight(textareaRef.current);
 		}
+	}, [props.draftState.content]);
+
+	const onContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		props.onContentChange(e.target.value);
+		syncTextareaHeight(e.currentTarget);
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -109,15 +117,12 @@ export const ComposerPanel: React.FC<ComposerPanelProps> = (props) => {
 					placeholder={props.tagsPlaceholder}
 					value={props.draftState.tagDraft}
 					onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-						props.draftState.tagDraft = e.target.value;
-						props.onDraftRefresh();
+						props.onTagDraftChange(e.target.value);
 					}}
 					onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
 						if (e.key === "Enter" || e.key === " " || e.key === ",") {
 							e.preventDefault();
-							if (props.onCommitTagDraft()) {
-								props.onDraftRefresh();
-							}
+							props.onCommitTagDraft();
 						}
 					}}
 				/>
@@ -133,7 +138,6 @@ export const ComposerPanel: React.FC<ComposerPanelProps> = (props) => {
 									onMouseDown={(e: React.MouseEvent) => {
 										e.preventDefault();
 										props.onRemoveTag(tag);
-										props.onDraftRefresh();
 									}}
 								>
 									<ObsidianIcon iconId="x" />
@@ -148,7 +152,6 @@ export const ComposerPanel: React.FC<ComposerPanelProps> = (props) => {
 								onMouseDown={(e: React.MouseEvent) => {
 									e.preventDefault();
 									props.onAddTag(tag);
-									props.onDraftRefresh();
 								}}
 							>
 								<span className="timeline-tag-chip-label">#{tag}</span>
@@ -161,46 +164,43 @@ export const ComposerPanel: React.FC<ComposerPanelProps> = (props) => {
 			{props.draftState.attachments.length > 0 && (
 				<div className="timeline-pending-section">
 					<div className="timeline-pending-list timeline-pending-images">
-					{props.draftState.attachments.map((att, i) => (
-						att.type === "image" ? (
-							<PendingAttachmentCard
-								key={i}
-								attachment={att}
-								onRemove={() => {
-									props.draftState.attachments.splice(i, 1);
-									props.onDraftRefresh();
-								}}
-							/>
-						) : null
-					))}
+						{props.draftState.attachments.map((att, i) =>
+							att.type === "image" ? (
+								<PendingAttachmentCard
+									key={att.id}
+									attachment={att}
+									onRemove={() => {
+										props.onRemoveAttachment(i);
+									}}
+								/>
+							) : null,
+						)}
 					</div>
 					<div className="timeline-pending-list timeline-pending-files">
-					{props.draftState.attachments.map((att, i) => (
-						att.type === "file" ? (
-							<PendingAttachmentCard
-								key={i}
-								attachment={att}
-								onRemove={() => {
-									props.draftState.attachments.splice(i, 1);
-									props.onDraftRefresh();
-								}}
-							/>
-						) : null
-					))}
+						{props.draftState.attachments.map((att, i) =>
+							att.type === "file" ? (
+								<PendingAttachmentCard
+									key={att.id}
+									attachment={att}
+									onRemove={() => {
+										props.onRemoveAttachment(i);
+									}}
+								/>
+							) : null,
+						)}
 					</div>
 					<div className="timeline-pending-list timeline-pending-audios">
-					{props.draftState.attachments.map((att, i) => (
-						att.type === "audio" ? (
-							<PendingAttachmentCard
-								key={i}
-								attachment={att}
-								onRemove={() => {
-									props.draftState.attachments.splice(i, 1);
-									props.onDraftRefresh();
-								}}
-							/>
-						) : null
-					))}
+						{props.draftState.attachments.map((att, i) =>
+							att.type === "audio" ? (
+								<PendingAttachmentCard
+									key={att.id}
+									attachment={att}
+									onRemove={() => {
+										props.onRemoveAttachment(i);
+									}}
+								/>
+							) : null,
+						)}
 					</div>
 				</div>
 			)}
@@ -237,38 +237,43 @@ export const ComposerPanel: React.FC<ComposerPanelProps> = (props) => {
 							iconId={props.recordingState.isRecording ? "square" : "mic"}
 						/>
 					</button>
-						<input
-							ref={imageInputRef}
-							type="file"
-							accept="image/*"
-							multiple
-							className="timeline-hidden-input"
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-								if (e.target.files) {
-									void props.onAddFiles(e.target.files, "image");
-								}
-								e.target.value = "";
-							}}
-						/>
-						<input
-							ref={fileInputRef}
-							type="file"
-							multiple
-							className="timeline-hidden-input"
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-								if (e.target.files) {
-									void props.onAddFiles(e.target.files, "file");
-								}
-								e.target.value = "";
-							}}
-						/>
+					<input
+						ref={imageInputRef}
+						type="file"
+						accept="image/*"
+						multiple
+						className="timeline-hidden-input"
+						onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+							if (e.target.files) {
+								void props.onAddFiles(e.target.files, "image");
+							}
+							e.target.value = "";
+						}}
+					/>
+					<input
+						ref={fileInputRef}
+						type="file"
+						multiple
+						className="timeline-hidden-input"
+						onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+							if (e.target.files) {
+								void props.onAddFiles(e.target.files, "file");
+							}
+							e.target.value = "";
+						}}
+					/>
 				</div>
 
 				<div className="timeline-composer-actions">
-					<button className="timeline-composer-secondary-button" onClick={props.onCancel}>
+					<button
+						type="button"
+						className="timeline-composer-secondary-button"
+						onClick={props.onCancel}
+					>
 						{props.cancelLabel}
 					</button>
 					<button
+						type="button"
 						className={props.submitButtonClassName ?? "mod-cta timeline-composer-submit"}
 						onClick={() => {
 							void handleSubmit();

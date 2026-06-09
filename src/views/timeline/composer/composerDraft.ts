@@ -76,7 +76,6 @@ export function clearComposerDraft(state: ComposerDraftState): void {
 export function syncComposerTextareaHeight(
 	input: HTMLTextAreaElement,
 ): void {
-	// eslint-disable-next-line obsidianmd/no-static-styles-assignment
-	input.style.height = "0px";
+	input.style.removeProperty("height");
 	input.style.height = `${input.scrollHeight}px`;
 }

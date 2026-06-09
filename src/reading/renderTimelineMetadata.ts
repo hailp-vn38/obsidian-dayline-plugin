@@ -65,7 +65,11 @@ function injectTimelineMetadataUi(
 			continue;
 		}
 
-		const metadataEl = createReadingMetadataElement(entry.meta, mode);
+		const metadataEl = createReadingMetadataElement(
+			rootEl.ownerDocument,
+			entry.meta,
+			mode,
+		);
 		headingEl.insertAdjacentElement("afterend", metadataEl);
 	}
 }
@@ -95,10 +99,11 @@ function findHeadingByEntryMeta(rootEl: HTMLElement, meta: TimelineEntryMeta): H
 }
 
 function createReadingMetadataElement(
+	ownerDocument: Document,
 	meta: TimelineEntryMeta,
 	mode: TimelineMetadataReadingViewMode,
 ): HTMLElement {
-	const container = document.createElement("div");
+	const container = ownerDocument.createElement("div");
 	container.className = "pt-reading-metadata";
 	container.dataset.entryId = meta.id;
 

@@ -2,7 +2,7 @@
 	"id": "dayline",
 	"name": "Dayline",
 	"version": "1.2.5",
-	"minAppVersion": "0.15.0",
+	"minAppVersion": "1.7.2",
 	"description": "Capture daily check-ins in a right sidebar timeline with local-first markdown storage.",
 	"author": "Lam Phuc Hai",
 	"isDesktopOnly": false
