@@ -358,12 +358,6 @@
 		var(--background-secondary) 10%
 	) !important;
 	box-shadow: none !important;
-	border: 1px solid
-		color-mix(
-			in srgb,
-			var(--background-modifier-border) 88%,
-			var(--interactive-accent) 12%
-		);
 	border-radius: 20px;
 	color: var(--text-normal);
 	text-align: left;
@@ -1224,7 +1218,7 @@ input.timeline-composer-tag-input:focus-visible {
 .pt-entry {
 	display: grid;
 	grid-template-columns: 34px minmax(0, 1fr);
-	column-gap: 10px;
+	gap: 0 10px;
 	position: relative;
 }
 
@@ -1549,7 +1543,7 @@ input.timeline-composer-tag-input:focus-visible {
 	cursor: zoom-in;
 }
 
-.modal-container:has(.pt-image-preview-modal) .modal-bg {
+.modal-container.pt-image-preview-container .modal-bg {
 	background-color: rgba(0, 0, 0, 0.68);
 }
 
@@ -1948,7 +1942,7 @@ input.timeline-composer-tag-input:focus-visible {
 
 	.pt-entry {
 		grid-template-columns: 28px minmax(0, 1fr);
-		column-gap: 8px;
+		gap: 0 8px;
 	}
 }
 

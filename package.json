@@ -29,7 +29,7 @@
 	},
 	"dependencies": {
 		"obsidian": "latest",
-		"preact": "^10.26.9",
+		"preact": "^10.26.10",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0"
 	}

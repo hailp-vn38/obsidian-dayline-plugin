@@ -11,6 +11,7 @@ export class ImagePreviewModal extends Modal {
 	}
 
 	onOpen(): void {
+		this.containerEl.addClass("pt-image-preview-container");
 		this.modalEl.addClass("pt-image-preview-modal");
 		this.contentEl.empty();
 
@@ -58,5 +59,6 @@ export class ImagePreviewModal extends Modal {
 	onClose(): void {
 		this.contentEl.empty();
 		this.modalEl.removeClass("pt-image-preview-modal");
+		this.containerEl.removeClass("pt-image-preview-container");
 	}
 }
