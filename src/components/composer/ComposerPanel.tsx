@@ -5,7 +5,11 @@ import type {
 	ComposerFileTypeHint,
 	ComposerRecordingState,
 } from "../../views/timeline/composer/composerTypes";
-import { normalizeComposerContent } from "../../views/timeline/composer/composerDraft";
+import {
+	getCommittedComposerTags,
+	getComposerTags,
+	normalizeComposerContent,
+} from "../../views/timeline/composer/composerDraft";
 import {
 	formatPendingAttachmentSize,
 	getPendingAttachmentCardClass,
@@ -25,9 +29,11 @@ interface ComposerPanelProps {
 	submitButtonClassName?: string;
 	draftState: ComposerDraftState;
 	recordingState: ComposerRecordingState;
+	availableTags: string[];
 	onDraftRefresh: () => void;
 	onCommitTagDraft: () => boolean;
 	onRemoveTag: (tag: string) => void;
+	onAddTag: (tag: string) => void;
 	onAddFiles: (files: FileList | File[], typeHint: ComposerFileTypeHint) => void | Promise<void>;
 	onToggleRecording: () => void;
 	onPaste?: (event: React.ClipboardEvent<HTMLTextAreaElement>) => void | Promise<void>;
@@ -40,6 +46,21 @@ export const ComposerPanel: React.FC<ComposerPanelProps> = (props) => {
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const imageInputRef = useRef<HTMLInputElement>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
+	const selectedTags = getCommittedComposerTags(props.draftState);
+	const unavailableTags = new Set(getComposerTags(props.draftState));
+	const availableTagSuggestions = props.availableTags.filter(
+		(tag) => !unavailableTags.has(tag),
+	);
+	const tagRowClassName = [
+		"timeline-composer-tags-row",
+		selectedTags.length > 0 ? "has-selected-tags" : "",
+		availableTagSuggestions.length > 0 ? "has-tag-suggestions" : "",
+		props.draftState.tagDraft.trim().length === 0
+			? "is-tag-draft-empty"
+			: "has-tag-draft",
+	]
+		.filter(Boolean)
+		.join(" ");
 
 	const onContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		props.draftState.content = e.target.value;
@@ -81,10 +102,28 @@ export const ComposerPanel: React.FC<ComposerPanelProps> = (props) => {
 				rows={1}
 			/>
 
-			<div className="timeline-composer-tags-row">
-				{props.draftState.tagsValue.length > 0 && (
-					<div className="timeline-composer-tag-list">
-						{props.draftState.tagsValue.split(" ").filter((v: string) => v).map((tag: string) => (
+			<div className={tagRowClassName}>
+				<input
+					className="timeline-composer-tag-input"
+					type="text"
+					placeholder={props.tagsPlaceholder}
+					value={props.draftState.tagDraft}
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+						props.draftState.tagDraft = e.target.value;
+						props.onDraftRefresh();
+					}}
+					onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+						if (e.key === "Enter" || e.key === " " || e.key === ",") {
+							e.preventDefault();
+							if (props.onCommitTagDraft()) {
+								props.onDraftRefresh();
+							}
+						}
+					}}
+				/>
+				{(selectedTags.length > 0 || availableTagSuggestions.length > 0) && (
+					<div className="timeline-composer-tag-list" aria-label="Timeline tags">
+						{selectedTags.map((tag: string) => (
 							<span key={tag} className="timeline-tag-chip">
 								<span className="timeline-tag-chip-label">#{tag}</span>
 								<button
@@ -101,24 +140,22 @@ export const ComposerPanel: React.FC<ComposerPanelProps> = (props) => {
 								</button>
 							</span>
 						))}
+						{availableTagSuggestions.map((tag: string) => (
+							<button
+								key={tag}
+								type="button"
+								className="timeline-tag-chip timeline-tag-suggestion-chip"
+								onMouseDown={(e: React.MouseEvent) => {
+									e.preventDefault();
+									props.onAddTag(tag);
+									props.onDraftRefresh();
+								}}
+							>
+								<span className="timeline-tag-chip-label">#{tag}</span>
+							</button>
+						))}
 					</div>
 				)}
-				<input
-					className="timeline-composer-tag-input"
-					type="text"
-					placeholder={props.draftState.tagsValue.length === 0 ? props.tagsPlaceholder : ""}
-					value={props.draftState.tagDraft}
-					onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-						props.draftState.tagDraft = e.target.value;
-						props.onDraftRefresh();
-					}}
-					onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-						if (e.key === "Enter" || e.key === " " || e.key === ",") {
-							e.preventDefault();
-							props.onCommitTagDraft();
-						}
-					}}
-				/>
 			</div>
 
 			{props.draftState.attachments.length > 0 && (

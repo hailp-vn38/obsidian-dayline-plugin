@@ -4,7 +4,7 @@ import {
 	removePendingAttachment,
 } from "./composerAttachments";
 import {
-	getComposerTags,
+	getCommittedComposerTags,
 	normalizeComposerContent,
 	syncComposerTextareaHeight,
 } from "./composerDraft";
@@ -29,9 +29,11 @@ interface RenderComposerPanelOptions {
 	submitButtonClassName?: string;
 	draftState: ComposerDraftState;
 	recordingState: ComposerRecordingState;
+	availableTags: string[];
 	onDraftRefresh: () => void;
 	onCommitTagDraft: () => boolean;
 	onRemoveTag: (tag: string) => void;
+	onAddTag: (tag: string) => void;
 	onAddFiles: (
 		files: File[],
 		typeHint: ComposerFileTypeHint,
@@ -81,7 +83,8 @@ export function renderComposerPanel(
 	}
 
 	renderComposerTags(composer, {
-		tags: getComposerTags(options.draftState),
+		tags: getCommittedComposerTags(options.draftState),
+		availableTags: options.availableTags,
 		draftValue: options.draftState.tagDraft,
 		placeholder: options.tagsPlaceholder,
 		onDraftChange: (value) => {
@@ -89,6 +92,7 @@ export function renderComposerPanel(
 		},
 		onCommitDraft: options.onCommitTagDraft,
 		onRemoveTag: options.onRemoveTag,
+		onAddTag: options.onAddTag,
 		onRefresh: options.onDraftRefresh,
 	});
 

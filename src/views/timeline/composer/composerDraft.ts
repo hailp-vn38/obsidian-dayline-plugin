@@ -13,6 +13,12 @@ export function getComposerTags(state: ComposerTagDraftState): string[] {
 	return parseTags([state.tagsValue, state.tagDraft].filter(Boolean).join(" "));
 }
 
+export function getCommittedComposerTags(
+	state: ComposerTagDraftState,
+): string[] {
+	return parseTags(state.tagsValue);
+}
+
 export function commitComposerTagDraft(
 	state: ComposerTagDraftState,
 ): boolean {

@@ -11,6 +11,7 @@ import {
 	releasePendingAttachmentPreviews,
 } from "../views/timeline/composer/composerAttachments";
 import {
+	addComposerTag,
 	clearComposerDraft,
 	commitComposerTagDraft,
 	getComposerTags,
@@ -83,12 +84,16 @@ export class QuickCheckInModal extends Modal {
 			submitLabel: "Create",
 			draftState: this.draftState,
 			recordingState: this.recordingState,
+			availableTags: this.plugin.timelineIndex.getAvailableTags(),
 			onDraftRefresh: () => {
 				this.redraw();
 			},
 			onCommitTagDraft: () => this.commitTagDraft(),
 			onRemoveTag: (tag) => {
 				this.removeTag(tag);
+			},
+			onAddTag: (tag) => {
+				this.addTag(tag);
 			},
 			onAddFiles: async (files, typeHint) => {
 				await this.addPendingFiles(files, typeHint);
@@ -242,6 +247,10 @@ export class QuickCheckInModal extends Modal {
 
 	private removeTag(tagToRemove: string): void {
 		removeComposerTag(this.draftState, tagToRemove);
+	}
+
+	private addTag(tagToAdd: string): void {
+		addComposerTag(this.draftState, tagToAdd);
 	}
 
 	private redraw(): void {

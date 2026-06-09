@@ -2,11 +2,13 @@ import { setIcon } from "obsidian";
 
 interface RenderComposerTagsOptions {
 	tags: string[];
+	availableTags: string[];
 	draftValue: string;
 	placeholder: string;
 	onDraftChange: (value: string) => void;
 	onCommitDraft: () => boolean;
 	onRemoveTag: (tag: string) => void;
+	onAddTag: (tag: string) => void;
 	onRefresh: () => void;
 }
 
@@ -18,28 +20,21 @@ export function renderComposerTags(
 	const tagsRow = container.createDiv({
 		cls: "timeline-composer-tags-row",
 	});
-
+	const selectedTags = new Set(options.tags);
+	const availableTagSuggestions = options.availableTags.filter(
+		(tag) => !selectedTags.has(tag),
+	);
 	if (options.tags.length > 0) {
-		const tagsList = tagsRow.createDiv({
-			cls: "timeline-composer-tag-list",
-		});
-		for (const tag of options.tags) {
-			const chip = tagsList.createDiv({ cls: "timeline-tag-chip" });
-			chip.createSpan({
-				cls: "timeline-tag-chip-label",
-				text: `#${tag}`,
-			});
-			const removeButton = chip.createEl("button", {
-				cls: "timeline-tag-chip-remove",
-				attr: { "aria-label": `Remove #${tag}` },
-			});
-			setIcon(removeButton, "x");
-			removeButton.addEventListener("click", () => {
-				options.onRemoveTag(tag);
-				options.onRefresh();
-			});
-		}
+		tagsRow.addClass("has-selected-tags");
 	}
+	if (availableTagSuggestions.length > 0) {
+		tagsRow.addClass("has-tag-suggestions");
+	}
+	tagsRow.addClass(
+		options.draftValue.trim().length === 0
+			? "is-tag-draft-empty"
+			: "has-tag-draft",
+	);
 
 	const tagsInput = tagsRow.createEl("input", {
 		type: "text",
@@ -82,4 +77,41 @@ export function renderComposerTags(
 			}
 		}
 	});
+
+	if (options.tags.length > 0 || availableTagSuggestions.length > 0) {
+		const tagsList = tagsRow.createDiv({
+			cls: "timeline-composer-tag-list",
+		});
+		tagsList.setAttribute("aria-label", "Timeline tags");
+		for (const tag of options.tags) {
+			const chip = tagsList.createDiv({ cls: "timeline-tag-chip" });
+			chip.createSpan({
+				cls: "timeline-tag-chip-label",
+				text: `#${tag}`,
+			});
+			const removeButton = chip.createEl("button", {
+				cls: "timeline-tag-chip-remove",
+				attr: { "aria-label": `Remove #${tag}` },
+			});
+			setIcon(removeButton, "x");
+			removeButton.addEventListener("click", () => {
+				options.onRemoveTag(tag);
+				options.onRefresh();
+			});
+		}
+		for (const tag of availableTagSuggestions) {
+			const suggestionButton = tagsList.createEl("button", {
+				cls: "timeline-tag-chip timeline-tag-suggestion-chip",
+			});
+			suggestionButton.type = "button";
+			suggestionButton.createSpan({
+				cls: "timeline-tag-chip-label",
+				text: `#${tag}`,
+			});
+			suggestionButton.addEventListener("click", () => {
+				options.onAddTag(tag);
+				options.onRefresh();
+			});
+		}
+	}
 }

@@ -14,6 +14,7 @@ import { createTimelineEntryActions } from "../views/timeline/actions/timelineEn
 import { openTimelineEntryMenu } from "../views/timeline/actions/timelineMenu";
 import { mapPendingAttachmentsToInputs } from "../views/timeline/composer/composerAttachments";
 import {
+	addComposerTag,
 	commitComposerTagDraft,
 	removeComposerTag,
 	hasComposerDraftChanges,
@@ -202,6 +203,13 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 		[draftState],
 	);
 
+	const handleAddTag = useCallback(
+		(tag: string) => {
+			addComposerTag(draftState, tag);
+		},
+		[draftState],
+	);
+
 	const handlePasteComposer = useCallback(
 		async (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
 			await pasteImages(event.nativeEvent);
@@ -335,9 +343,11 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 					submitLabel={t(language, "common.send")}
 					draftState={draftState}
 					recordingState={recordingState}
+					availableTags={availableTags}
 					onDraftRefresh={bumpUiRevision}
 					onCommitTagDraft={handleCommitTagDraft}
 					onRemoveTag={handleRemoveTag}
+					onAddTag={handleAddTag}
 					onAddFiles={addFiles}
 					onPaste={handlePasteComposer}
 					onToggleRecording={() => {

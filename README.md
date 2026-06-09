@@ -1,5 +1,7 @@
 # Dayline
 
+![Dayline plugin cover](image/image.png)
+
 Dayline is an Obsidian plugin for capturing short daily check-ins in a right sidebar timeline. It stores data locally in your vault as markdown-first timeline files, with attachment files saved separately in the vault.
 
 ## What it does

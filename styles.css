@@ -420,23 +420,63 @@
 
 .timeline-composer-tags-row {
 	display: flex;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 	align-items: center;
 	gap: 6px;
 	padding: 0;
 	border-bottom: none;
+	width: 100%;
+	overflow: hidden;
 }
 
 .timeline-composer-tag-list {
 	display: flex;
-	flex-wrap: wrap;
+	flex: 0 1 auto;
+	flex-wrap: nowrap;
+	justify-content: flex-start !important;
+	text-align: left !important;
 	gap: 8px;
+	min-width: 0;
+	max-width: calc(100% - 64px);
+	margin-inline-start: 0 !important;
+	margin-inline-end: auto !important;
+	overflow-x: auto;
+	overflow-y: hidden;
+	padding: 2px 0;
+	scrollbar-width: thin;
+	scrollbar-color: var(--background-modifier-border) transparent;
+	overscroll-behavior-inline: contain;
+}
+
+.timeline-composer-tag-list::-webkit-scrollbar {
+	width: 3px !important;
+	height: 3px !important;
+}
+
+.timeline-composer-tag-list::-webkit-scrollbar-track {
+	background: transparent !important;
+}
+
+.timeline-composer-tag-list::-webkit-scrollbar-thumb {
+	min-height: 3px !important;
+	border: 0 !important;
+	border-radius: 999px !important;
+	background-color: var(--background-modifier-border) !important;
+}
+
+.timeline-composer-tag-list::-webkit-scrollbar-thumb:hover {
+	background-color: color-mix(
+		in srgb,
+		var(--background-modifier-border) 70%,
+		var(--text-muted) 30%
+	) !important;
 }
 
 .timeline-tag-chip {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
+	flex: 0 0 auto;
 	min-height: 32px;
 	padding: 6px 8px 6px 12px;
 	border-radius: 999px;
@@ -449,6 +489,33 @@
 	background: transparent;
 	color: var(--text-normal);
 	white-space: nowrap;
+}
+
+button.timeline-tag-chip {
+	margin: 0;
+	box-shadow: none;
+	cursor: pointer;
+}
+
+button.timeline-tag-chip:hover,
+button.timeline-tag-chip:focus {
+	background: color-mix(
+		in srgb,
+		var(--background-modifier-hover) 78%,
+		transparent 22%
+	);
+	box-shadow: none;
+}
+
+.timeline-tag-suggestion-chip {
+	padding-right: 12px;
+	border-color: var(--background-modifier-border);
+	color: var(--text-muted);
+}
+
+.timeline-tag-suggestion-chip:hover,
+.timeline-tag-suggestion-chip:focus {
+	color: var(--text-normal);
 }
 
 .timeline-tag-chip-label {
@@ -481,9 +548,10 @@
 }
 
 input.timeline-composer-tag-input {
-	flex: 1 0 140px;
-	min-width: 100px;
-	max-width: 100%;
+	flex: 0 0 160px;
+	width: 160px !important;
+	min-width: 160px;
+	max-width: 160px;
 	padding: 0;
 	min-height: 28px;
 	border: 0 !important;
@@ -495,6 +563,16 @@ input.timeline-composer-tag-input {
 	outline: none !important;
 	appearance: none !important;
 	-webkit-appearance: none !important;
+}
+
+.timeline-composer-tags-row.has-selected-tags
+	input.timeline-composer-tag-input,
+.timeline-composer-tags-row.has-tag-suggestions
+	input.timeline-composer-tag-input {
+	flex: 0 0 56px;
+	width: 56px !important;
+	min-width: 56px;
+	max-width: 56px;
 }
 
 input.timeline-composer-tag-input:hover,
