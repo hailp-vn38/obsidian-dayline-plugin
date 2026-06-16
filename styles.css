@@ -1,7 +1,10 @@
 .dayline-view-container,
 .pt-checkin-modal,
 .timeline-edit-modal,
-.dayline-embed {
+.dayline-embed,
+.pt-reading-metadata,
+.dayline-settings-tab,
+.modal.pt-image-preview-modal {
 	--dayline-view-container-padding: 0;
 	--dayline-reset-border: 0;
 	--dayline-reset-border-radius: 0;
@@ -34,13 +37,39 @@
 		var(--background-modifier-border) 70%,
 		var(--text-muted) 30%
 	);
+	--dayline-hover-surface-border: 1px solid transparent;
+	--dayline-hover-surface-background: transparent;
+	--dayline-hover-surface-hover-background: var(--background-modifier-hover);
+	--dayline-hover-surface-hover-border-color: var(
+		--background-modifier-border-hover,
+		var(--background-modifier-border)
+	);
+	--dayline-hover-surface-active-background: color-mix(
+		in srgb,
+		var(--interactive-accent) 16%,
+		transparent 84%
+	);
+	--dayline-hover-surface-active-border-color: color-mix(
+		in srgb,
+		var(--interactive-accent) 68%,
+		transparent 32%
+	);
 	--dayline-tag-input-width: 160px;
 	--dayline-tag-input-compact-width: 56px;
 	--dayline-hover-background: var(--background-modifier-hover);
-	--dayline-embed-border: 1px solid var(--background-modifier-border);
-	--dayline-embed-background: var(--background-primary);
-	--dayline-embed-hover-background: var(--interactive-hover);
-	--dayline-embed-hover-border-color: var(--background-modifier-border-hover);
+	--dayline-embed-border: var(--dayline-hover-surface-border);
+	--dayline-embed-background: var(--dayline-hover-surface-background);
+	--dayline-embed-hover-background: var(
+		--dayline-hover-surface-hover-background
+	);
+	--dayline-embed-hover-border-color: var(
+		--dayline-hover-surface-hover-border-color
+	);
+}
+
+.modal.pt-image-preview-modal {
+	--dayline-hover-surface-hover-background: rgba(0, 0, 0, 0.62);
+	--dayline-hover-surface-hover-border-color: rgba(255, 255, 255, 0.28);
 }
 
 .dayline-view-container {
@@ -1367,6 +1396,11 @@ input.timeline-composer-tag-input:focus-visible {
 .pt-entry-menu {
 	appearance: none;
 	-webkit-appearance: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
 	border: var(--dayline-reset-border);
 	background: var(--dayline-reset-background);
 	color: var(--text-muted);
@@ -1374,15 +1408,15 @@ input.timeline-composer-tag-input:focus-visible {
 	padding: 0;
 	opacity: 1;
 	box-shadow: var(--dayline-reset-box-shadow);
-	border-radius: 0;
+	border-radius: 6px;
 	outline: none;
+	line-height: 1;
 }
 
 .pt-entry-menu:hover,
 .pt-entry-menu:focus,
 .pt-entry-menu:focus-visible,
-.pt-entry-menu:active,
-.pt-entry-main:hover .pt-entry-menu {
+.pt-entry-menu:active {
 	background: var(--dayline-reset-background);
 	color: var(--text-normal);
 	box-shadow: var(--dayline-reset-box-shadow);
@@ -2175,10 +2209,7 @@ input.timeline-composer-tag-input:focus-visible {
 .dayline-view-container.dayline-view-container .pt-entry-menu.pt-entry-menu:focus,
 .dayline-view-container.dayline-view-container
 	.pt-entry-menu.pt-entry-menu:focus-visible,
-.dayline-view-container.dayline-view-container .pt-entry-menu.pt-entry-menu:active,
-.dayline-view-container.dayline-view-container
-	.pt-entry-main:hover
-	.pt-entry-menu.pt-entry-menu {
+.dayline-view-container.dayline-view-container .pt-entry-menu.pt-entry-menu:active {
 	border: var(--dayline-reset-border, 0);
 	background: var(--dayline-reset-background, transparent);
 	color: var(--text-normal);
@@ -2241,5 +2272,133 @@ input.timeline-composer-tag-input:focus-visible {
 	border-color: var(
 		--dayline-embed-hover-border-color,
 		var(--background-modifier-border-hover)
+	);
+}
+
+/* Hover Surface: plugin buttons stay plain until hover or keyboard focus. */
+.dayline-view-container.dayline-view-container button:is(
+		.timeline-header-action,
+		.timeline-header-button,
+		.timeline-filter-toggle,
+		.timeline-filter-chip,
+		.timeline-composer-collapsed,
+		.timeline-tag-chip,
+		.timeline-tag-chip-remove,
+		.timeline-icon-button,
+		.timeline-composer-secondary-button,
+		.timeline-composer-submit,
+		.timeline-pending-remove,
+		.timeline-empty-action,
+		.pt-entry-menu,
+		.pt-source-chip,
+		.pt-linked-source-preview-header,
+		.pt-tag
+	),
+.pt-checkin-modal.pt-checkin-modal button:is(
+		.timeline-tag-chip,
+		.timeline-tag-chip-remove,
+		.timeline-icon-button,
+		.timeline-composer-secondary-button,
+		.timeline-composer-submit,
+		.timeline-pending-remove,
+		.pt-checkin-source-link
+	),
+.timeline-edit-modal.timeline-edit-modal
+	button:is(.timeline-edit-attachment-remove),
+.timeline-edit-modal.timeline-edit-modal .timeline-modal-actions button,
+.dayline-embed.dayline-embed button:is(
+		.dayline-embed-open,
+		.dayline-embed-source
+	),
+.pt-reading-metadata.pt-reading-metadata button.pt-reading-metadata-copy,
+.dayline-settings-tab.dayline-settings-tab .setting-item-control button,
+.modal.pt-image-preview-modal.pt-image-preview-modal button.pt-image-preview-action {
+	appearance: none;
+	-webkit-appearance: none;
+	box-sizing: border-box;
+	border: var(--dayline-hover-surface-border, 1px solid transparent);
+	border-color: transparent;
+	background: var(--dayline-hover-surface-background, transparent);
+	background-image: none;
+	box-shadow: var(--dayline-reset-box-shadow, none);
+}
+
+.dayline-view-container.dayline-view-container
+	button:is(
+		.timeline-header-action,
+		.timeline-header-button,
+		.timeline-filter-toggle,
+		.timeline-filter-chip,
+		.timeline-composer-collapsed,
+		.timeline-tag-chip,
+		.timeline-tag-chip-remove,
+		.timeline-icon-button,
+		.timeline-composer-secondary-button,
+		.timeline-composer-submit,
+		.timeline-pending-remove,
+		.timeline-empty-action,
+		.pt-entry-menu,
+		.pt-source-chip,
+		.pt-linked-source-preview-header,
+		.pt-tag
+	):is(:hover, :focus-visible):not(:disabled),
+.pt-checkin-modal.pt-checkin-modal
+	button:is(
+		.timeline-tag-chip,
+		.timeline-tag-chip-remove,
+		.timeline-icon-button,
+		.timeline-composer-secondary-button,
+		.timeline-composer-submit,
+		.timeline-pending-remove,
+		.pt-checkin-source-link
+	):is(:hover, :focus-visible):not(:disabled),
+.timeline-edit-modal.timeline-edit-modal
+	button.timeline-edit-attachment-remove:is(:hover, :focus-visible):not(
+		:disabled
+	),
+.timeline-edit-modal.timeline-edit-modal
+	.timeline-modal-actions
+	button:is(:hover, :focus-visible):not(:disabled),
+.dayline-embed.dayline-embed
+	button:is(.dayline-embed-open, .dayline-embed-source):is(
+		:hover,
+		:focus-visible
+	):not(:disabled),
+.pt-reading-metadata.pt-reading-metadata
+	button.pt-reading-metadata-copy:is(:hover, :focus-visible):not(:disabled),
+.dayline-settings-tab.dayline-settings-tab
+	.setting-item-control
+	button:is(:hover, :focus-visible):not(:disabled),
+.modal.pt-image-preview-modal.pt-image-preview-modal
+	button.pt-image-preview-action:is(:hover, :focus-visible):not(:disabled) {
+	background: var(
+		--dayline-hover-surface-hover-background,
+		var(--background-modifier-hover)
+	);
+	border-color: var(
+		--dayline-hover-surface-hover-border-color,
+		var(--background-modifier-border)
+	);
+	box-shadow: var(--dayline-reset-box-shadow, none);
+}
+
+.dayline-view-container.dayline-view-container
+	button.timeline-header-action.is-active {
+	background: var(--interactive-accent);
+	border-color: var(--interactive-accent);
+	color: var(--text-on-accent);
+}
+
+.dayline-view-container.dayline-view-container button.timeline-filter-chip.is-active,
+.dayline-view-container.dayline-view-container
+	.pt-entry-tags
+	button.pt-tag.is-active {
+	background: var(
+		--dayline-hover-surface-active-background,
+		color-mix(in srgb, var(--interactive-accent) 16%, transparent 84%)
+	);
+	border-color: var(
+		--dayline-hover-surface-active-border-color,
+		var(--interactive-accent)
 	);
 }

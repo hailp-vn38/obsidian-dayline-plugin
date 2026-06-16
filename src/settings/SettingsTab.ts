@@ -273,6 +273,7 @@ export class TimelineSettingTab extends PluginSettingTab {
 
 	display(): void {
 		this.containerEl.empty();
+		this.containerEl.addClass("dayline-settings-tab");
 		this.renderSettingDefinitions(this.getSettingDefinitions(), this.containerEl);
 	}
 
