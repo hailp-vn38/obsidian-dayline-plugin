@@ -14,6 +14,7 @@ export interface TimelinePluginSettings {
 	timeFormat: TimelineTimeFormat;
 	renderTimelineContentMarkdown: boolean;
 	showLinkedSourcePreview: boolean;
+	showTimelineCalendar: boolean;
 	writeTagsAsObsidianTags: boolean;
 	timelineDotColor: string;
 	timelineLineColor: string;

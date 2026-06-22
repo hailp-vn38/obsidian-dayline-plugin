@@ -182,6 +182,14 @@ export class TimelineSettingTab extends PluginSettingTab {
 						},
 					},
 					{
+						name: t(language, "settings.timelineCalendar.name"),
+						desc: t(language, "settings.timelineCalendar.desc"),
+						control: {
+							type: "toggle",
+							key: "showTimelineCalendar",
+						},
+					},
+					{
 						name: t(language, "settings.writeTagsAsObsidianTags.name"),
 						desc: t(language, "settings.writeTagsAsObsidianTags.desc"),
 						render: (setting) => this.renderWriteTagsSetting(setting),
@@ -324,6 +332,9 @@ export class TimelineSettingTab extends PluginSettingTab {
 				break;
 			case "showLinkedSourcePreview":
 				this.plugin.settings.showLinkedSourcePreview = value === true;
+				break;
+			case "showTimelineCalendar":
+				this.plugin.settings.showTimelineCalendar = value === true;
 				break;
 			case "showMetadataInReadingView":
 				this.plugin.settings.showMetadataInReadingView = value === true;

@@ -21,6 +21,8 @@ type TranslationKey =
 	| "settings.renderMarkdown.desc"
 	| "settings.linkedSourcePreview.name"
 	| "settings.linkedSourcePreview.desc"
+	| "settings.timelineCalendar.name"
+	| "settings.timelineCalendar.desc"
 	| "settings.writeTagsAsObsidianTags.name"
 	| "settings.writeTagsAsObsidianTags.desc"
 	| "settings.dotColor.name"
@@ -60,6 +62,9 @@ type TranslationKey =
 	| "timeline.yesterday"
 	| "timeline.thisWeek"
 	| "timeline.customDate"
+	| "timeline.calendarAriaLabel"
+	| "timeline.nextMonth"
+	| "timeline.previousMonth"
 	| "timeline.filterBy"
 	| "timeline.tagBy"
 	| "timeline.sourceBy"
@@ -112,6 +117,8 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"settings.renderMarkdown.desc": "Render timeline entry content with Obsidian Markdown rendering. When disabled, content is shown as plain text.",
 		"settings.linkedSourcePreview.name": "Show linked source preview",
 		"settings.linkedSourcePreview.desc": "Show a short preview of linked Markdown files inside timeline entries.",
+		"settings.timelineCalendar.name": "Show timeline calendar",
+		"settings.timelineCalendar.desc": "Show a horizontal calendar in the default timeline view with markers for days that have entries.",
 		"settings.writeTagsAsObsidianTags.name": "Write Dayline tags as Obsidian tags",
 		"settings.writeTagsAsObsidianTags.desc": "Write entry tags as native Markdown tags so Obsidian can index them.",
 		"settings.dotColor.name": "Timeline dot color",
@@ -151,6 +158,9 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"timeline.yesterday": "Yesterday",
 		"timeline.thisWeek": "This week",
 		"timeline.customDate": "Custom date",
+		"timeline.calendarAriaLabel": "Timeline calendar",
+		"timeline.nextMonth": "Next month",
+		"timeline.previousMonth": "Previous month",
 		"timeline.filterBy": "Filter by",
 		"timeline.tagBy": "Tag by",
 		"timeline.sourceBy": "Source",
@@ -202,6 +212,8 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"settings.renderMarkdown.desc": "Render nội dung entry bằng Markdown của Obsidian. Khi tắt, nội dung hiển thị dạng văn bản thường.",
 		"settings.linkedSourcePreview.name": "Hiển thị xem trước nguồn liên kết",
 		"settings.linkedSourcePreview.desc": "Hiển thị đoạn xem trước ngắn của file Markdown được liên kết trong entry timeline.",
+		"settings.timelineCalendar.name": "Hiển thị calendar timeline",
+		"settings.timelineCalendar.desc": "Hiển thị calendar ngang trong giao diện timeline mặc định và đánh dấu những ngày có entry.",
 		"settings.writeTagsAsObsidianTags.name": "Ghi tag Dayline thành tag Obsidian",
 		"settings.writeTagsAsObsidianTags.desc": "Ghi tag của entry thành tag Markdown native để Obsidian có thể index.",
 		"settings.dotColor.name": "Màu dot timeline",
@@ -241,6 +253,9 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"timeline.yesterday": "Hôm qua",
 		"timeline.thisWeek": "Tuần này",
 		"timeline.customDate": "Tuỳ chỉnh",
+		"timeline.calendarAriaLabel": "Calendar timeline",
+		"timeline.nextMonth": "Tháng sau",
+		"timeline.previousMonth": "Tháng trước",
 		"timeline.filterBy": "Lọc theo",
 		"timeline.tagBy": "Tag",
 		"timeline.sourceBy": "Nguồn",

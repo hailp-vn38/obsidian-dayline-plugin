@@ -6,6 +6,7 @@ import {
 } from "../index/filterTimeline";
 import { formatDateForFile, getNow } from "../utils/date";
 import type { TimelineIndexItem } from "../models/TimelineEntry";
+import type { TimelineLanguage } from "../models/TimelineSettings";
 import {
 	resetExpandedFilters,
 	updateDatePreset,
@@ -25,6 +26,10 @@ import {
 import { TimelineEmptyState } from "./timeline/TimelineEmptyState";
 import { TimelineList } from "./timeline/TimelineList";
 import { ComposerPanel } from "./composer/ComposerPanel";
+import {
+	HorizontalCalendar,
+	type HorizontalCalendarMarker,
+} from "./calendar/HorizontalCalendar";
 import { Notice, TFile } from "obsidian";
 import { getErrorMessage } from "../views/timeline/utils/timelineErrors";
 import { useTimelineData } from "../hooks/useTimelineData";
@@ -49,6 +54,43 @@ function createInitialFilterState(): TimelineFilterState {
 		customDate: today,
 		customEndDate: today,
 	};
+}
+
+function createCalendarMarkers(
+	items: TimelineIndexItem[],
+	language: TimelineLanguage,
+): Record<string, HorizontalCalendarMarker[]> {
+	const countsByDate = new Map<string, number>();
+	for (const item of items) {
+		countsByDate.set(item.date, (countsByDate.get(item.date) ?? 0) + 1);
+	}
+
+	const markersByDate: Record<string, HorizontalCalendarMarker[]> = {};
+	for (const [date, count] of countsByDate) {
+		markersByDate[date] = [
+			{
+				tone: "default",
+				label: entryCountText(language, count),
+			},
+		];
+	}
+
+	return markersByDate;
+}
+
+function getCalendarSelectedDate(
+	filters: TimelineFilterState,
+	today: string,
+): string {
+	if (filters.datePreset === "custom" && filters.customDate) {
+		return filters.customDate;
+	}
+
+	return today;
+}
+
+function getCalendarLocale(language: TimelineLanguage): string {
+	return language === "vi" ? "vi-VN" : "en-US";
 }
 
 export const TimelineRoot: React.FC<TimelineRootProps> = ({
@@ -78,6 +120,9 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 
 	const [activePanel, setActivePanel] =
 		useState<TimelineActivePanel>(null);
+	const [calendarMonth, setCalendarMonth] = useState(() =>
+		formatDateForFile(getNow()).slice(0, 7),
+	);
 	const activeSourceFile = plugin.app.workspace.getActiveFile();
 	const currentSourcePath = activeSourceFile?.path ?? "";
 	const currentSourceLabel = activeSourceFile?.basename ?? "";
@@ -201,6 +246,16 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 		}));
 	}, []);
 
+	const handleCalendarDateSelect = useCallback((date: string) => {
+		setCalendarMonth(date.slice(0, 7));
+		setFilters((prev: TimelineFilterState) => ({
+			...prev,
+			datePreset: "custom",
+			customDate: date,
+			customEndDate: date,
+		}));
+	}, []);
+
 	const handlePasteComposer = useCallback(
 		async (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
 			await pasteImages(event.nativeEvent);
@@ -296,6 +351,13 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 			? { "--pt-line-color": plugin.settings.timelineLineColor }
 			: {}),
 	} as React.CSSProperties;
+	const calendarMarkersByDate = useMemo(
+		() => createCalendarMarkers(allItems, language),
+		[allItems, language],
+	);
+	const selectedCalendarDate = getCalendarSelectedDate(filters, today);
+	const shouldShowCalendar =
+		plugin.settings.showTimelineCalendar && activePanel === null;
 
 	return (
 		<div
@@ -322,6 +384,28 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 								: "timeline.entries",
 						),
 					})}
+				</div>
+			)}
+
+			{shouldShowCalendar && (
+				<div className="timeline-calendar-panel">
+					<HorizontalCalendar
+						month={calendarMonth}
+						selectedDate={selectedCalendarDate}
+						today={today}
+						markersByDate={calendarMarkersByDate}
+						locale={getCalendarLocale(language)}
+						labels={{
+							ariaLabel: t(language, "timeline.calendarAriaLabel"),
+							nextMonth: t(language, "timeline.nextMonth"),
+							previousMonth: t(language, "timeline.previousMonth"),
+							today: t(language, "timeline.today"),
+						}}
+						weekdayFormat="short"
+						maxVisibleMarkers={1}
+						onMonthChange={setCalendarMonth}
+						onSelectDate={handleCalendarDateSelect}
+					/>
 				</div>
 			)}
 
