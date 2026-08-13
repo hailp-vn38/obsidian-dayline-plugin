@@ -86,7 +86,7 @@ export function renderPendingAttachments(
 				cls: "timeline-pending-file-name",
 				text: attachment.name,
 			});
-			fileBody.createEl("div", {
+			fileBody.createDiv({
 				cls: "timeline-pending-file-size",
 				text: formatPendingAttachmentSize(attachment.data.byteLength),
 			});

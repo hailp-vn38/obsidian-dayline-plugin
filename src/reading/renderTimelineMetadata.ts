@@ -209,9 +209,10 @@ function createReadingMetadataElement(
 	meta: TimelineEntryMeta,
 	mode: TimelineMetadataReadingViewMode,
 ): HTMLElement {
-	const container = ownerDocument.createElement("div");
-	container.className = "pt-reading-metadata";
-	container.dataset.entryId = meta.id;
+	const container = ownerDocument.createDiv({
+		cls: "pt-reading-metadata",
+		attr: { "data-entry-id": meta.id },
+	});
 
 	if (mode === "summary") {
 		renderMetadataSummary(container, meta);

@@ -306,7 +306,7 @@ export class TimelineSettingTab extends PluginSettingTab {
 					value,
 					LANGUAGE_OPTIONS,
 					"en",
-				) as TimelineLanguage;
+				);
 				break;
 			case "timelineFolder":
 				this.plugin.settings.timelineFolder = this.normalizeText(
@@ -325,21 +325,21 @@ export class TimelineSettingTab extends PluginSettingTab {
 					value,
 					FILE_ORGANIZATION_OPTIONS,
 					"year-month",
-				) as TimelineFileOrganization;
+				);
 				break;
 			case "defaultView":
 				this.plugin.settings.defaultView = this.asOption(
 					value,
 					DEFAULT_VIEW_OPTIONS,
 					"today",
-				) as TimelineDefaultView;
+				);
 				break;
 			case "timeFormat":
 				this.plugin.settings.timeFormat = this.asOption(
 					value,
 					TIME_FORMAT_OPTIONS,
 					"24h",
-				) as TimelineTimeFormat;
+				);
 				break;
 			case "renderTimelineContentMarkdown":
 				this.plugin.settings.renderTimelineContentMarkdown = value === true;
@@ -358,7 +358,7 @@ export class TimelineSettingTab extends PluginSettingTab {
 					value,
 					METADATA_READING_VIEW_OPTIONS,
 					"summary",
-				) as TimelineMetadataReadingViewMode;
+				);
 				break;
 			case "propertyEnrichmentEnabled":
 				this.plugin.settings.propertyEnrichmentEnabled = value === true;
@@ -368,7 +368,7 @@ export class TimelineSettingTab extends PluginSettingTab {
 					value,
 					DAILY_NOTES_MODE_OPTIONS,
 					"off",
-				) as TimelineDailyNotesMode;
+				);
 				break;
 			case "dailyNoteLinkProperty":
 				this.plugin.settings.dailyNoteLinkProperty = this.normalizeText(
