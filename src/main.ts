@@ -2,27 +2,36 @@ import {
 	MarkdownView,
 	Notice,
 	Plugin,
-	TAbstractFile,
 	TFile,
 	WorkspaceLeaf,
 } from "obsidian";
 
+import {
+	getActiveSelection,
+	registerCommands,
+} from "./commands/registerCommands";
+import { t } from "./i18n";
+import { TimelineEventCoordinator } from "./index/TimelineEventCoordinator";
 import { TimelineIndexService } from "./index/TimelineIndexService";
+import { registerWorkspaceIntegrations } from "./integrations/registerWorkspaceIntegrations";
 import type { TimelineSourceContext } from "./models/TimelineEntry";
 import type { TimelinePluginSettings } from "./models/TimelineSettings";
 import { QuickCheckInModal } from "./quick-check-in/QuickCheckInModal";
 import { renderDaylineCodeBlock } from "./reading/renderDaylineBlock";
-import { renderTimelineMetadataInReadingView } from "./reading/renderTimelineMetadata";
+import {
+	invalidateTimelineMetadataCache,
+	renderTimelineMetadataInReadingView,
+} from "./reading/renderTimelineMetadata";
 import { DEFAULT_SETTINGS, TimelineSettingTab } from "./settings";
+import { TimelineSettingsService } from "./settings/TimelineSettingsService";
+import type { SettingsEffect } from "./settings/settingsEffects";
 import type { PendingAttachmentInput } from "./storage/attachments";
 import { TimelineRepository } from "./storage/timelineRepository";
 import { TimelineView, VIEW_TYPE_TIMELINE } from "./views/TimelineView";
 import {
-	createSourceContext,
 	createSourceContextFromView,
 	getSourceContextTarget,
 } from "./utils/sourceContext";
-import { t } from "./i18n";
 
 interface CreateQuickCheckInInput {
 	content: string;
@@ -36,87 +45,54 @@ export default class DaylinePlugin extends Plugin {
 	settings!: TimelinePluginSettings;
 	timelineRepository!: TimelineRepository;
 	timelineIndex!: TimelineIndexService;
+	private settingsService!: TimelineSettingsService;
+	private timelineEvents!: TimelineEventCoordinator;
+	private timelineIndexReadyPromise: Promise<void> | null = null;
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
-		await this.initializeServices();
+		this.initializeServices();
 		this.registerView(
 			VIEW_TYPE_TIMELINE,
 			(leaf) => new TimelineView(leaf, this),
 		);
 		this.registerMarkdownPostProcessor((el, ctx) => {
-			void renderTimelineMetadataInReadingView(this, el, ctx);
+			void renderTimelineMetadataInReadingView(this, el, ctx).catch(
+				(error: unknown) => {
+					console.error("Unable to render Dayline metadata", error);
+				},
+			);
 		});
-		this.registerMarkdownCodeBlockProcessor("dayline", (source, el, ctx) => {
+		this.registerMarkdownCodeBlockProcessor("dayline", async (source, el, ctx) => {
+			await this.ensureTimelineIndexReady();
 			renderDaylineCodeBlock(this, source, el, ctx);
 		});
-		this.registerVaultEvents();
-		this.registerWorkspaceEvents();
-
-		this.addRibbonIcon("list-todo", t(this.settings.language, "timeline.title"), () => {
-			void this.activateTimelineView();
-		});
-		this.addCommand({
-			id: "open-timeline",
-			name: t(this.settings.language, "timeline.title"),
-			callback: () => {
-				void this.activateTimelineView();
-			},
-		});
-		this.addCommand({
-			id: "create-quick-check-in",
-			name: t(this.settings.language, "timeline.createCheckIn"),
-			callback: () => {
-				this.openQuickCheckInModal();
-			},
-		});
-		this.addCommand({
-			id: "create-quick-check-in-from-selection",
-			name: t(this.settings.language, "command.createCheckInFromSelection"),
-			editorCallback: (editor) => {
-				new QuickCheckInModal(this, { initialContent: editor.getSelection() }).open();
-			},
-		});
-		this.addCommand({
-			id: "create-linked-check-in",
-			name: t(this.settings.language, "command.createLinkedCheckIn"),
-			callback: () => {
-				this.openLinkedQuickCheckInModal();
-			},
-		});
-		this.addCommand({
-			id: "create-linked-check-in-from-selection",
-			name: t(this.settings.language, "command.createLinkedCheckInFromSelection"),
-			editorCallback: (editor, view) => {
-				const sourceContext = createSourceContextFromView(
-					this.app,
-					view,
-					editor,
-					"selection",
-				);
-				new QuickCheckInModal(this, {
-					initialContent: editor.getSelection(),
-					sourceContext,
-				}).open();
-			},
-		});
+		this.timelineEvents.register();
+		registerWorkspaceIntegrations(this);
+		registerCommands(this);
 
 		this.addSettingTab(new TimelineSettingTab(this.app, this));
+		this.app.workspace.onLayoutReady(() => {
+			void this.ensureTimelineIndexReady();
+		});
 	}
 
-	onunload(): void {}
+	onunload(): void {
+		this.timelineEvents.dispose();
+		invalidateTimelineMetadataCache(this);
+	}
 
 	async loadSettings(): Promise<void> {
 		const loaded = (await this.loadData()) as Partial<TimelinePluginSettings> | null;
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded ?? {});
 	}
 
-	async saveSettings(): Promise<void> {
+	async persistSettings(): Promise<void> {
 		await this.saveData(this.settings);
-		await this.initializeServices();
-		await this.timelineRepository.refreshAllDayProperties();
-		await this.timelineIndex.rebuild();
-		await this.refreshTimelineViews();
+	}
+
+	async saveSettings(effect: SettingsEffect): Promise<void> {
+		await this.settingsService.apply(effect);
 	}
 
 	async activateTimelineView(): Promise<void> {
@@ -144,6 +120,35 @@ export default class DaylinePlugin extends Plugin {
 		}
 	}
 
+	async refreshTimelineFile(file: TFile): Promise<void> {
+		await this.timelineEvents.refreshFile(file);
+	}
+
+	async ensureTimelineIndexReady(): Promise<void> {
+		if (this.timelineIndex.getStatus() === "ready") {
+			return;
+		}
+		if (this.timelineIndexReadyPromise) {
+			return this.timelineIndexReadyPromise;
+		}
+
+		this.timelineIndexReadyPromise = (async () => {
+			if (this.timelineIndex.getStatus() === "loading") {
+				await this.timelineIndex.whenReady();
+			} else {
+				await this.timelineIndex.rebuild();
+			}
+			await this.refreshTimelineViews();
+		})();
+		try {
+			await this.timelineIndexReadyPromise;
+		} catch (error) {
+			console.error("Unable to build the Dayline index", error);
+		} finally {
+			this.timelineIndexReadyPromise = null;
+		}
+	}
+
 	async openTimelineSource(file: TFile, entryId?: string): Promise<void> {
 		if (entryId) {
 			const linkText = this.app.metadataCache.fileToLinktext(file, "", false);
@@ -163,7 +168,7 @@ export default class DaylinePlugin extends Plugin {
 	}
 
 	async createQuickCheckIn(input: CreateQuickCheckInInput): Promise<void> {
-		await this.timelineRepository.createTextEntry(
+		const result = await this.timelineRepository.createTextEntry(
 			{
 				content: input.content,
 				tags: input.tags,
@@ -175,8 +180,7 @@ export default class DaylinePlugin extends Plugin {
 			new Date(),
 			input.attachments,
 		);
-		await this.timelineIndex.rebuild();
-		await this.refreshTimelineViews();
+		await this.refreshTimelineFile(result.file);
 	}
 
 	private async refreshLeafView(leaf: WorkspaceLeaf): Promise<void> {
@@ -186,98 +190,34 @@ export default class DaylinePlugin extends Plugin {
 		}
 	}
 
-	private async initializeServices(): Promise<void> {
+	private initializeServices(): void {
 		this.timelineRepository = new TimelineRepository(this.app, this.settings);
 		this.timelineIndex = new TimelineIndexService(this.app, this.settings);
-		await this.timelineIndex.rebuild();
+		this.settingsService = new TimelineSettingsService({
+			persist: () => this.persistSettings(),
+			repository: this.timelineRepository,
+			index: this.timelineIndex,
+			refreshTimelineViews: () => this.refreshTimelineViews(),
+		});
+		this.timelineEvents = new TimelineEventCoordinator({
+			app: this.app,
+			plugin: this,
+			settings: this.settings,
+			index: this.timelineIndex,
+			onIndexChanged: () => this.refreshTimelineViews(),
+			invalidateReadingCache: (path) => {
+				invalidateTimelineMetadataCache(this, path);
+			},
+		});
 	}
 
-	private registerVaultEvents(): void {
-		this.registerEvent(this.app.vault.on("create", (file) => {
-			void this.handleVaultUpdate(file);
-		}));
-		this.registerEvent(this.app.vault.on("modify", (file) => {
-			void this.handleVaultUpdate(file);
-		}));
-		this.registerEvent(this.app.vault.on("delete", (file) => {
-			void this.handleVaultDelete(file);
-		}));
-		this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
-			this.timelineIndex.removeBySourcePath(oldPath);
-			void this.handleVaultUpdate(file);
-		}));
+	openQuickCheckInModal(): void {
+		new QuickCheckInModal(this, {
+			initialContent: getActiveSelection(this),
+		}).open();
 	}
 
-	private registerWorkspaceEvents(): void {
-		this.registerEvent(this.app.workspace.on("file-open", () => {
-			void this.refreshTimelineViews();
-		}));
-		this.registerEvent(this.app.workspace.on("editor-menu", (menu, editor, view) => {
-			const sourceContext = createSourceContextFromView(
-				this.app,
-				view,
-				editor,
-				editor.getSelection() ? "selection" : "note",
-			);
-			if (!sourceContext) {
-				return;
-			}
-
-			menu.addItem((item) => {
-				item
-					.setTitle(t(this.settings.language, "command.addSelectionToDayline"))
-					.setIcon("calendar-plus")
-					.onClick(() => {
-						new QuickCheckInModal(this, {
-							initialContent: editor.getSelection(),
-							sourceContext,
-						}).open();
-					});
-			});
-		}));
-		this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => {
-			if (!(file instanceof TFile) || file.extension !== "md") {
-				return;
-			}
-
-			const sourceContext = createSourceContext({
-				app: this.app,
-				file,
-				type: "file",
-			});
-			menu.addItem((item) => {
-				item
-					.setTitle(t(this.settings.language, "command.addFileToDayline"))
-					.setIcon("calendar-plus")
-					.onClick(() => {
-						new QuickCheckInModal(this, { sourceContext }).open();
-					});
-			});
-		}));
-	}
-
-	private async handleVaultUpdate(file: TAbstractFile): Promise<void> {
-		if (!(file instanceof TFile)) {
-			return;
-		}
-
-		await this.timelineIndex.refreshFile(file);
-		await this.refreshTimelineViews();
-	}
-
-	private async handleVaultDelete(file: TAbstractFile): Promise<void> {
-		this.timelineIndex.removeBySourcePath(file.path);
-		await this.timelineIndex.rebuild();
-		await this.refreshTimelineViews();
-	}
-
-	private openQuickCheckInModal(): void {
-		const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-		const selectedText = markdownView?.editor?.getSelection() ?? "";
-		new QuickCheckInModal(this, { initialContent: selectedText }).open();
-	}
-
-	private openLinkedQuickCheckInModal(): void {
+	openLinkedQuickCheckInModal(): void {
 		const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
 		const sourceContext = createSourceContextFromView(
 			this.app,

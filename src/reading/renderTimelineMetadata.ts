@@ -4,6 +4,22 @@ import type DaylinePlugin from "../main";
 import type { ParsedTimelineEntry, TimelineEntryMeta } from "../models/TimelineEntry";
 import type { TimelineMetadataReadingViewMode } from "../models/TimelineSettings";
 import { parseTimelineEntries } from "../parser/parseTimelineEntries";
+import { isTimelineMarkdownPath } from "../utils/timelinePath";
+
+interface CachedReadingEntry {
+	entry: ParsedTimelineEntry;
+	lineStart: number;
+}
+
+interface ReadingCacheSlot {
+	mtime: number;
+	entries: Promise<CachedReadingEntry[]>;
+}
+
+const readingCache = new WeakMap<
+	DaylinePlugin,
+	Map<string, ReadingCacheSlot>
+>();
 
 export async function renderTimelineMetadataInReadingView(
 	plugin: DaylinePlugin,
@@ -19,16 +35,19 @@ export async function renderTimelineMetadataInReadingView(
 		return;
 	}
 
-	if (!isTimelineFile(ctx.sourcePath, plugin.settings.timelineFolder)) {
+	if (!isTimelineMarkdownPath(ctx.sourcePath, plugin.settings.timelineFolder)) {
 		return;
 	}
 
-	const markdown = await plugin.app.vault.read(file);
-	if (!isTimelineMarkdown(markdown)) {
-		return;
-	}
-
-	const entries = parseTimelineEntries(markdown);
+	const cachedEntries = await getCachedReadingEntries(plugin, file);
+	const section = ctx.getSectionInfo(rootEl);
+	const entries = cachedEntries
+		.filter(({ lineStart }) =>
+			section
+				? lineStart >= section.lineStart && lineStart <= section.lineEnd
+				: true,
+		)
+		.map(({ entry }) => entry);
 	if (!entries.length) {
 		return;
 	}
@@ -36,12 +55,99 @@ export async function renderTimelineMetadataInReadingView(
 	injectTimelineMetadataUi(rootEl, entries, plugin.settings.metadataReadingViewMode);
 }
 
-function isTimelineFile(path: string, timelineFolder: string): boolean {
-	return path.startsWith(`${timelineFolder.replace(/\/+$/, "")}/`);
+export function invalidateTimelineMetadataCache(
+	plugin: DaylinePlugin,
+	path?: string,
+): void {
+	const pluginCache = readingCache.get(plugin);
+	if (!pluginCache) {
+		return;
+	}
+
+	if (path) {
+		pluginCache.delete(path);
+		return;
+	}
+
+	pluginCache.clear();
+}
+
+export async function readTimelineMetadataEntries(
+	plugin: DaylinePlugin,
+	file: TFile,
+): Promise<ParsedTimelineEntry[]> {
+	return (await getCachedReadingEntries(plugin, file)).map(({ entry }) => entry);
+}
+
+async function getCachedReadingEntries(
+	plugin: DaylinePlugin,
+	file: TFile,
+): Promise<CachedReadingEntry[]> {
+	let pluginCache = readingCache.get(plugin);
+	if (!pluginCache) {
+		pluginCache = new Map<string, ReadingCacheSlot>();
+		readingCache.set(plugin, pluginCache);
+	}
+
+	const cached = pluginCache.get(file.path);
+	if (cached?.mtime === file.stat.mtime) {
+		return cached.entries;
+	}
+
+	const entries = plugin.app.vault.cachedRead(file).then((markdown) => {
+		if (!isTimelineMarkdown(markdown)) {
+			return [];
+		}
+
+		const lineStarts = getLineStarts(markdown);
+		return parseTimelineEntries(markdown).map((entry) => ({
+			entry,
+			lineStart: getLineAtOffset(lineStarts, entry.blockStart),
+		}));
+	});
+	pluginCache.set(file.path, {
+		mtime: file.stat.mtime,
+		entries,
+	});
+
+	try {
+		return await entries;
+	} catch (error) {
+		const latest = pluginCache.get(file.path);
+		if (latest?.entries === entries) {
+			pluginCache.delete(file.path);
+		}
+		throw error;
+	}
 }
 
 function isTimelineMarkdown(markdown: string): boolean {
 	return /^---[\s\S]*?type:\s*timeline-day[\s\S]*?---/.test(markdown);
+}
+
+function getLineStarts(markdown: string): number[] {
+	const starts = [0];
+	for (let index = 0; index < markdown.length; index += 1) {
+		if (markdown[index] === "\n") {
+			starts.push(index + 1);
+		}
+	}
+	return starts;
+}
+
+function getLineAtOffset(lineStarts: number[], offset: number): number {
+	let low = 0;
+	let high = lineStarts.length - 1;
+	while (low <= high) {
+		const middle = Math.floor((low + high) / 2);
+		const lineStart = lineStarts[middle] ?? 0;
+		if (lineStart <= offset) {
+			low = middle + 1;
+		} else {
+			high = middle - 1;
+		}
+	}
+	return Math.max(high, 0);
 }
 
 function injectTimelineMetadataUi(

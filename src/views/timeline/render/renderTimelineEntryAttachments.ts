@@ -51,6 +51,8 @@ export function renderTimelineEntryAttachments(
 				attr: {
 					src: options.getResourcePath(file),
 					alt: attachment.name ?? file.name,
+					loading: "lazy",
+					decoding: "async",
 				},
 			});
 			if (options.onImageClick) {
@@ -71,6 +73,7 @@ export function renderTimelineEntryAttachments(
 				cls: "timeline-attachment-audio pt-audio-player",
 			});
 			audio.controls = true;
+			audio.preload = "none";
 			audio.src = options.getResourcePath(file);
 		});
 	}

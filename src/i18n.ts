@@ -57,6 +57,9 @@ type TranslationKey =
 	| "timeline.emptyDescription"
 	| "timeline.emptyFilteredTitle"
 	| "timeline.emptyFilteredDescription"
+	| "timeline.loading"
+	| "timeline.loadFailed"
+	| "timeline.loadMore"
 	| "timeline.today"
 	| "timeline.allDates"
 	| "timeline.yesterday"
@@ -153,6 +156,9 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"timeline.emptyDescription": "Create the first check-in to start your dayline.",
 		"timeline.emptyFilteredTitle": "No matching check-ins",
 		"timeline.emptyFilteredDescription": "Adjust search or filters to see more timeline entries.",
+		"timeline.loading": "Loading timeline…",
+		"timeline.loadFailed": "Unable to load the timeline index.",
+		"timeline.loadMore": "Load more",
 		"timeline.allDates": "All",
 		"timeline.today": "Today",
 		"timeline.yesterday": "Yesterday",
@@ -248,6 +254,9 @@ const TRANSLATIONS: Record<TimelineLanguage, Record<TranslationKey, string>> = {
 		"timeline.emptyDescription": "Tạo check-in đầu tiên để bắt đầu dayline.",
 		"timeline.emptyFilteredTitle": "Không có check-in phù hợp",
 		"timeline.emptyFilteredDescription": "Điều chỉnh tìm kiếm hoặc bộ lọc để xem thêm timeline.",
+		"timeline.loading": "Đang tải timeline…",
+		"timeline.loadFailed": "Không thể tải chỉ mục timeline.",
+		"timeline.loadMore": "Tải thêm",
 		"timeline.allDates": "Tất cả",
 		"timeline.today": "Hôm nay",
 		"timeline.yesterday": "Hôm qua",

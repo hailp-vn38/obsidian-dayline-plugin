@@ -5,13 +5,18 @@ import type { TimelinePluginSettings } from "../models/TimelineSettings";
 import { countMalformedTimelineEntryMetas, parseTimelineEntries } from "../parser/parseTimelineEntries";
 import { extractEditableMarkdownContent } from "../storage/timelineRepository";
 import { getMarkdownFilesInFolder } from "../storage/vaultFiles";
+import { isPathInFolder, isTimelineMarkdownPath } from "../utils/timelinePath";
 
 import { TimelineIndex } from "./TimelineIndex";
 
 export class TimelineIndexService {
 	private readonly index = new TimelineIndex();
-	private readonly fileCache = new Map<string, CachedTimelineFile>();
+	private fileCache = new Map<string, CachedTimelineFile>();
 	private malformedEntryCount = 0;
+	private availableTagsSnapshot: string[] | null = null;
+	private status: TimelineIndexStatus = "idle";
+	private rebuildPromise: Promise<void> | null = null;
+	private rebuildRequested = false;
 
 	constructor(
 		private readonly app: App,
@@ -19,31 +24,74 @@ export class TimelineIndexService {
 	) {}
 
 	async rebuild(): Promise<void> {
-		this.index.clear();
-		this.fileCache.clear();
-		this.malformedEntryCount = 0;
-		const files = getMarkdownFilesInFolder(this.app, this.settings.timelineFolder);
-
-		for (const file of files) {
-			await this.readAndCacheFile(file);
+		if (this.rebuildPromise) {
+			this.rebuildRequested = true;
+			return this.rebuildPromise;
 		}
 
-		this.rebuildIndexFromCache();
+		this.status = "loading";
+		this.rebuildPromise = this.runRebuildLoop();
+		try {
+			await this.rebuildPromise;
+			this.status = "ready";
+		} catch (error) {
+			this.status = "error";
+			throw error;
+		} finally {
+			this.rebuildPromise = null;
+		}
 	}
 
-	async refreshFile(file: TFile): Promise<void> {
-		const timelineFolder = normalizeFolder(this.settings.timelineFolder);
-		if (!isTimelineFile(file, timelineFolder)) {
-			return;
+	getStatus(): TimelineIndexStatus {
+		return this.status;
+	}
+
+	async whenReady(): Promise<void> {
+		if (this.rebuildPromise) {
+			await this.rebuildPromise;
+		}
+	}
+
+	async refreshFile(file: TFile, force = false): Promise<boolean> {
+		if (!isTimelineMarkdownPath(file.path, this.settings.timelineFolder)) {
+			return false;
+		}
+		const cachedFile = this.fileCache.get(file.path);
+		if (!force && cachedFile?.mtime === file.stat.mtime) {
+			return false;
 		}
 
 		await this.readAndCacheFile(file);
 		this.rebuildIndexFromCache();
+		return true;
 	}
 
-	removeBySourcePath(path: string): void {
-		this.fileCache.delete(path);
+	removeBySourcePath(path: string): boolean {
+		if (!this.fileCache.delete(path)) {
+			return false;
+		}
 		this.rebuildIndexFromCache();
+		return true;
+	}
+
+	removeByPathPrefix(path: string): boolean {
+		return this.removeByPathPrefixes([path]);
+	}
+
+	removeByPathPrefixes(paths: Iterable<string>): boolean {
+		const prefixes = Array.from(paths);
+		let didRemove = false;
+		for (const cachedPath of this.fileCache.keys()) {
+			if (prefixes.some((path) => isPathInFolder(cachedPath, path))) {
+				this.fileCache.delete(cachedPath);
+				didRemove = true;
+			}
+		}
+
+		if (didRemove) {
+			this.rebuildIndexFromCache();
+		}
+		return didRemove;
 	}
 
 	getAll(): TimelineIndexItem[] {
@@ -51,9 +99,12 @@ export class TimelineIndexService {
 	}
 
 	getAvailableTags(): string[] {
-		return Array.from(new Set(this.index.getAll().flatMap((item) => item.tags))).sort((left, right) =>
-			left.localeCompare(right),
-		);
+		if (!this.availableTagsSnapshot) {
+			this.availableTagsSnapshot = Array.from(
+				new Set(this.index.getAll().flatMap((item) => item.tags)),
+			).sort((left, right) => left.localeCompare(right));
+		}
+		return this.availableTagsSnapshot;
 	}
 
 	getTagSuggestionsForDate(
@@ -113,20 +164,58 @@ export class TimelineIndexService {
 	}
 
 	private async readAndCacheFile(file: TFile): Promise<void> {
+		this.fileCache.set(file.path, await this.readFile(file));
+	}
+
+	private async readFile(file: TFile): Promise<CachedTimelineFile> {
 		const markdown = await this.app.vault.cachedRead(file);
 		const malformedCount = countMalformedTimelineEntryMetas(markdown);
 		const entries = parseTimelineEntries(markdown);
 		const items = entries.map((entry) => createIndexItem(file, entry));
-		this.fileCache.set(file.path, {
+		return {
 			path: file.path,
+			mtime: file.stat.mtime,
 			malformedCount,
 			items,
-		});
+		};
+	}
+
+	private async runRebuildLoop(): Promise<void> {
+		do {
+			this.rebuildRequested = false;
+			const nextCache = await this.buildFileCache();
+			if (!this.rebuildRequested) {
+				this.fileCache = nextCache;
+				this.rebuildIndexFromCache();
+			}
+		} while (this.rebuildRequested);
+	}
+
+	private async buildFileCache(): Promise<Map<string, CachedTimelineFile>> {
+		const files = getMarkdownFilesInFolder(this.app, this.settings.timelineFolder);
+		const nextCache = new Map<string, CachedTimelineFile>();
+		let nextFileIndex = 0;
+		const worker = async (): Promise<void> => {
+			while (nextFileIndex < files.length) {
+				const file = files[nextFileIndex];
+				nextFileIndex += 1;
+				if (!file) {
+					continue;
+				}
+				nextCache.set(file.path, await this.readFile(file));
+			}
+		};
+		const workerCount = Math.min(4, files.length);
+		await Promise.all(
+			Array.from({ length: workerCount }, () => worker()),
+		);
+		return nextCache;
 	}
 
 	private rebuildIndexFromCache(): void {
 		this.index.clear();
 		this.malformedEntryCount = 0;
+		this.availableTagsSnapshot = null;
 
 		for (const cachedFile of this.fileCache.values()) {
 			this.malformedEntryCount += cachedFile.malformedCount;
@@ -137,18 +226,13 @@ export class TimelineIndexService {
 	}
 }
 
+export type TimelineIndexStatus = "idle" | "loading" | "ready" | "error";
+
 interface CachedTimelineFile {
 	path: string;
+	mtime: number;
 	malformedCount: number;
 	items: TimelineIndexItem[];
-}
-
-function isTimelineFile(file: TFile, timelineFolder: string): boolean {
-	return file.extension === "md" && file.path.startsWith(`${timelineFolder}/`);
-}
-
-function normalizeFolder(folder: string): string {
-	return folder.replace(/\/+$/, "");
 }
 
 function extractTextPreview(blockMarkdown: string): string {

@@ -57,6 +57,18 @@ export default tseslint.config(
 			"depend/ban-dependencies": "off",
 		},
 	},
+	{
+		files: ["vitest.config.ts"],
+		rules: {
+			"import/no-nodejs-modules": "off",
+		},
+	},
+	{
+		files: ["tests/**/*.ts"],
+		rules: {
+			"obsidianmd/prefer-window-timers": "off",
+		},
+	},
 	globalIgnores([
 		"node_modules",
 		"dist",

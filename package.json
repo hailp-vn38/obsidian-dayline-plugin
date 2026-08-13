@@ -7,6 +7,8 @@
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"benchmark": "vitest bench --run",
+		"test": "vitest run",
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"lint": "eslint ."
 	},
@@ -15,7 +17,7 @@
 	"devDependencies": {
 		"@eslint-react/eslint-plugin": "^1.53.1",
 		"@eslint/js": "9.30.1",
-		"@types/node": "^16.11.6",
+		"@types/node": "18.19.121",
 		"@types/react": "^18.3.31",
 		"@types/react-dom": "^18.3.7",
 		"esbuild": "0.25.5",
@@ -25,7 +27,8 @@
 		"jiti": "2.6.1",
 		"tslib": "2.4.0",
 		"typescript": "^5.8.3",
-		"typescript-eslint": "8.35.1"
+		"typescript-eslint": "8.35.1",
+		"vitest": "2.1.9"
 	},
 	"dependencies": {
 		"obsidian": "latest",

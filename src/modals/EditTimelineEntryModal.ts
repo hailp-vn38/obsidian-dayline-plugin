@@ -1,4 +1,4 @@
-import { Modal, Notice, Setting, TextComponent, setIcon } from "obsidian";
+import { Modal, Notice, Setting, TextComponent, TFile, setIcon } from "obsidian";
 
 import type DaylinePlugin from "../main";
 import type { TimelineAttachment } from "../models/TimelineAttachment";
@@ -96,8 +96,12 @@ export class EditTimelineEntryModal extends Modal {
 				this.entry.meta.id,
 				input,
 			);
-			await this.plugin.timelineIndex.rebuild();
-			await this.plugin.refreshTimelineViews();
+			const sourceFile = this.plugin.app.vault.getAbstractFileByPath(
+				this.sourcePath,
+			);
+			if (sourceFile instanceof TFile) {
+				await this.plugin.refreshTimelineFile(sourceFile);
+			}
 			new Notice("Entry updated.");
 			this.close();
 		} catch (error) {

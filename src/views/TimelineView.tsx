@@ -35,6 +35,7 @@ export class TimelineView extends ItemView {
 		this.contentEl.addClass("dayline-view-container");
 		this.reactRoot = createRoot(this.contentEl);
 		this.renderReact();
+		void this.plugin.ensureTimelineIndexReady();
 	}
 
 	async onClose(): Promise<void> {

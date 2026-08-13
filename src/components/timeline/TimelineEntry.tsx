@@ -16,21 +16,19 @@ interface TimelineEntryProps {
 	selectedTag: string;
 	renderMarkdown: boolean;
 	showLinkedSourcePreview: boolean;
-	refreshRevision: number;
 	onTagToggle: (tag: string) => void;
 	onOpenSource: (item: TimelineIndexItem) => void;
 	onOpenMenu: (event: React.MouseEvent, item: TimelineIndexItem) => void;
 	onTaskToggle: (item: TimelineIndexItem, taskIndex: number, checked: boolean) => void;
 }
 
-export const TimelineEntry: React.FC<TimelineEntryProps> = ({
+export const TimelineEntry: React.FC<TimelineEntryProps> = React.memo(({
 	entry,
 	isFirst,
 	language,
 	selectedTag,
 	renderMarkdown,
 	showLinkedSourcePreview,
-	refreshRevision,
 	onTagToggle,
 	onOpenSource,
 	onOpenMenu,
@@ -81,10 +79,9 @@ export const TimelineEntry: React.FC<TimelineEntryProps> = ({
 
 				{entry.sourceContext && showLinkedSourcePreview && (
 					<LinkedSourcePreview
-						entry={entry}
-						language={language}
-						refreshRevision={refreshRevision}
-						onOpenSource={onOpenSource}
+							entry={entry}
+							language={language}
+							onOpenSource={onOpenSource}
 					/>
 				)}
 
@@ -115,4 +112,4 @@ export const TimelineEntry: React.FC<TimelineEntryProps> = ({
 			</div>
 		</div>
 	);
-};
+});

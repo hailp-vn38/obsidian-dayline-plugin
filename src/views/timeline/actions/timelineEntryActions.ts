@@ -42,8 +42,10 @@ export function createTimelineEntryActions(
 					item.sourcePath,
 					item.id,
 				);
-				await plugin.timelineIndex.rebuild();
-				await plugin.refreshTimelineViews();
+				const sourceFile = plugin.app.vault.getAbstractFileByPath(item.sourcePath);
+				if (sourceFile instanceof TFile) {
+					await plugin.refreshTimelineFile(sourceFile);
+				}
 				new Notice("Entry duplicated.");
 			} catch (error) {
 				new Notice(getErrorMessage(error, "Unable to duplicate entry."));
@@ -82,8 +84,10 @@ export function createTimelineEntryActions(
 					item.sourcePath,
 					item.id,
 				);
-				await plugin.timelineIndex.rebuild();
-				await plugin.refreshTimelineViews();
+				const sourceFile = plugin.app.vault.getAbstractFileByPath(item.sourcePath);
+				if (sourceFile instanceof TFile) {
+					await plugin.refreshTimelineFile(sourceFile);
+				}
 				new Notice("Entry deleted.");
 			} catch (error) {
 				new Notice(getErrorMessage(error, "Unable to delete entry."));

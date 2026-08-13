@@ -16,9 +16,10 @@ export const TimelineAttachments: React.FC<TimelineAttachmentsProps> = ({
 	const { plugin } = usePlugin();
 
 	useEffect(() => {
-		if (containerRef.current && attachments.length > 0) {
-			containerRef.current.innerHTML = "";
-			renderTimelineEntryAttachments(containerRef.current, attachments, {
+		const container = containerRef.current;
+		if (container && attachments.length > 0) {
+			container.innerHTML = "";
+			renderTimelineEntryAttachments(container, attachments, {
 				getFileByPath: (path: string) => {
 					const abstractFile =
 						plugin.app.vault.getAbstractFileByPath(path);
@@ -37,6 +38,7 @@ export const TimelineAttachments: React.FC<TimelineAttachmentsProps> = ({
 				},
 			});
 		}
+		return () => container?.empty();
 	}, [attachments, plugin.app]);
 
 	return <div ref={containerRef} className="timeline-attachments" />;

@@ -11,6 +11,7 @@ import type {
 	TimelineTimeFormat,
 } from "../models/TimelineSettings";
 import { LANGUAGE_OPTIONS, t } from "../i18n";
+import { getSettingsEffect } from "./settingsEffects";
 
 const FILE_ORGANIZATION_OPTIONS: Record<TimelineFileOrganization, string> = {
 	flat: "Flat",
@@ -74,6 +75,8 @@ type SettingDefinition = SettingDefinitionItem | SettingDefinitionGroup;
 
 export class TimelineSettingTab extends PluginSettingTab {
 	plugin: DaylinePlugin;
+	private readonly pendingControlValues = new Map<SettingKey, unknown>();
+	private readonly controlTimers = new Map<SettingKey, number>();
 
 	constructor(app: App, plugin: DaylinePlugin) {
 		super(app, plugin);
@@ -85,12 +88,23 @@ export class TimelineSettingTab extends PluginSettingTab {
 	}
 
 	async setControlValue(key: string, value: unknown): Promise<void> {
-		this.setSettingValue(key as SettingKey, value);
-		await this.plugin.saveSettings();
+		const settingKey = key as SettingKey;
+		const previousValue = this.getControlValue(settingKey);
+		this.setSettingValue(settingKey, value);
+		if (Object.is(previousValue, this.getControlValue(settingKey))) {
+			return;
+		}
+
+		await this.plugin.saveSettings(getSettingsEffect(settingKey));
 
 		if (key === "language" || key === "dailyNotesMode") {
 			this.refreshSettingsTab();
 		}
+	}
+
+	hide(): void {
+		void this.flushPendingControls();
+		super.hide();
 	}
 
 	getSettingDefinitions(): SettingDefinition[] {
@@ -363,8 +377,11 @@ export class TimelineSettingTab extends PluginSettingTab {
 				);
 				break;
 			case "writeTagsAsObsidianTags":
+				this.plugin.settings.writeTagsAsObsidianTags = value === true;
+				break;
 			case "timelineDotColor":
 			case "timelineLineColor":
+				this.plugin.settings[key] = this.normalizeText(value, "");
 				break;
 		}
 	}
@@ -374,11 +391,7 @@ export class TimelineSettingTab extends PluginSettingTab {
 			toggle
 				.setValue(this.plugin.settings.writeTagsAsObsidianTags)
 				.onChange(async (value) => {
-					this.plugin.settings.writeTagsAsObsidianTags = value;
-					await this.plugin.saveSettings();
-					await this.plugin.timelineRepository.rewriteAllEntryMarkdownForCurrentSettings();
-					await this.plugin.timelineIndex.rebuild();
-					await this.plugin.refreshTimelineViews();
+					await this.setControlValue("writeTagsAsObsidianTags", value);
 				}),
 		);
 	}
@@ -393,17 +406,16 @@ export class TimelineSettingTab extends PluginSettingTab {
 			.addColorPicker((picker) =>
 				picker
 					.setValue(this.plugin.settings[key] || fallbackColor)
-					.onChange(async (value) => {
-						this.plugin.settings[key] = value;
-						await this.plugin.saveSettings();
+					.onChange((value) => {
+						this.scheduleControlValue(key, value, 100);
 					}),
 			)
 			.addButton((button) =>
 				button
 					.setButtonText(t(language, "common.reset"))
 					.onClick(async () => {
-						this.plugin.settings[key] = "";
-						await this.plugin.saveSettings();
+						this.cancelPendingControl(key);
+						await this.setControlValue(key, "");
 						this.refreshSettingsTab();
 					}),
 			);
@@ -467,8 +479,11 @@ export class TimelineSettingTab extends PluginSettingTab {
 					text
 						.setValue(this.getStringControlValue(control))
 						.onChange((value) => {
-							void this.setControlValue(control.key, value);
+							this.scheduleControlValue(control.key, value, 350);
 						});
+					text.inputEl.addEventListener("blur", () => {
+						void this.flushPendingControl(control.key);
+					});
 				});
 				break;
 			case "dropdown":
@@ -523,6 +538,57 @@ export class TimelineSettingTab extends PluginSettingTab {
 		}
 
 		this.display();
+	}
+
+	private scheduleControlValue(
+		key: SettingKey,
+		value: unknown,
+		delayMs: number,
+	): void {
+		this.pendingControlValues.set(key, value);
+		const currentTimer = this.controlTimers.get(key);
+		if (currentTimer !== undefined) {
+			window.clearTimeout(currentTimer);
+		}
+
+		const timer = window.setTimeout(() => {
+			this.controlTimers.delete(key);
+			void this.flushPendingControl(key);
+		}, delayMs);
+		this.controlTimers.set(key, timer);
+	}
+
+	private async flushPendingControl(key: SettingKey): Promise<void> {
+		const timer = this.controlTimers.get(key);
+		if (timer !== undefined) {
+			window.clearTimeout(timer);
+			this.controlTimers.delete(key);
+		}
+
+		if (!this.pendingControlValues.has(key)) {
+			return;
+		}
+
+		const value = this.pendingControlValues.get(key);
+		this.pendingControlValues.delete(key);
+		await this.setControlValue(key, value);
+	}
+
+	private async flushPendingControls(): Promise<void> {
+		await Promise.all(
+			Array.from(this.pendingControlValues.keys()).map((key) =>
+				this.flushPendingControl(key),
+			),
+		);
+	}
+
+	private cancelPendingControl(key: SettingKey): void {
+		const timer = this.controlTimers.get(key);
+		if (timer !== undefined) {
+			window.clearTimeout(timer);
+		}
+		this.controlTimers.delete(key);
+		this.pendingControlValues.delete(key);
 	}
 
 	private normalizeText(value: unknown, fallback: string): string {

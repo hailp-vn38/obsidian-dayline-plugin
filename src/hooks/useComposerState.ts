@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Notice } from "obsidian";
 
 import type {
@@ -33,7 +33,7 @@ function createEmptyDraftState(): ComposerDraftState {
 }
 
 export function useComposerState() {
-	const [uiRevision, setUiRevision] = useState(0);
+	const [, setRecordingRevision] = useState(0);
 	const [draftState, setDraftState] = useState<ComposerDraftState>(
 		createEmptyDraftState,
 	);
@@ -42,39 +42,34 @@ export function useComposerState() {
 		audioChunks: [],
 		isRecording: false,
 	});
+	const latestAttachmentsRef = useRef(draftState.attachments);
+	useEffect(() => {
+		latestAttachmentsRef.current = draftState.attachments;
+	}, [draftState.attachments]);
 
-	const bumpUiRevision = useCallback(() => {
-		setUiRevision((revision) => revision + 1);
+	const bumpRecordingRevision = useCallback(() => {
+		setRecordingRevision((revision) => revision + 1);
 	}, []);
 
 	const clearDraft = useCallback(() => {
 		stopComposerRecordingTracks(recordingState);
 		releasePendingAttachmentPreviews(draftState.attachments);
 		setDraftState(createEmptyDraftState());
-		bumpUiRevision();
-	}, [recordingState, draftState, bumpUiRevision]);
+	}, [recordingState, draftState]);
 
-	const setDraftContent = useCallback(
-		(content: string) => {
-			setDraftState((prev) => ({
-				...prev,
-				content,
-			}));
-			bumpUiRevision();
-		},
-		[bumpUiRevision],
-	);
+	const setDraftContent = useCallback((content: string) => {
+		setDraftState((prev) => ({
+			...prev,
+			content,
+		}));
+	}, []);
 
-	const setTagDraft = useCallback(
-		(tagDraft: string) => {
-			setDraftState((prev) => ({
-				...prev,
-				tagDraft,
-			}));
-			bumpUiRevision();
-		},
-		[bumpUiRevision],
-	);
+	const setTagDraft = useCallback((tagDraft: string) => {
+		setDraftState((prev) => ({
+			...prev,
+			tagDraft,
+		}));
+	}, []);
 
 	const commitTagDraft = useCallback(() => {
 		setDraftState((prev) => {
@@ -87,10 +82,9 @@ export function useComposerState() {
 				return prev;
 			}
 
-			bumpUiRevision();
 			return next;
 		});
-	}, [bumpUiRevision]);
+	}, []);
 
 	const removeTag = useCallback(
 		(tag: string) => {
@@ -101,11 +95,10 @@ export function useComposerState() {
 					return prev;
 				}
 
-				bumpUiRevision();
 				return next;
 			});
 		},
-		[bumpUiRevision],
+		[],
 	);
 
 	const addTag = useCallback(
@@ -117,11 +110,10 @@ export function useComposerState() {
 					return prev;
 				}
 
-				bumpUiRevision();
 				return next;
 			});
 		},
-		[bumpUiRevision],
+		[],
 	);
 
 	const removeAttachment = useCallback(
@@ -132,14 +124,13 @@ export function useComposerState() {
 					return prev;
 				}
 
-				bumpUiRevision();
 				return {
 					...prev,
 					attachments,
 				};
 			});
 		},
-		[bumpUiRevision],
+		[],
 	);
 
 	const addFiles = useCallback(
@@ -154,9 +145,8 @@ export function useComposerState() {
 				...prev,
 				attachments: [...prev.attachments, ...attachments],
 			}));
-			bumpUiRevision();
 		},
-		[bumpUiRevision],
+		[],
 	);
 
 	const pasteImages = useCallback(
@@ -171,16 +161,15 @@ export function useComposerState() {
 					...prev,
 					attachments: [...prev.attachments, ...attachments],
 				}));
-				bumpUiRevision();
 			}
 		},
-		[bumpUiRevision],
+		[],
 	);
 
 	const toggleRecording = useCallback(async () => {
 		if (recordingState.isRecording) {
 			stopComposerRecording(recordingState);
-			bumpUiRevision();
+			bumpRecordingRevision();
 			return;
 		}
 
@@ -192,7 +181,7 @@ export function useComposerState() {
 			onError: () => {
 				new Notice("Failed to access microphone");
 				recordingState.isRecording = false;
-				bumpUiRevision();
+				bumpRecordingRevision();
 			},
 			onReady: async (file: File) => {
 				const attachments: ComposerDraftState["attachments"] = [];
@@ -201,23 +190,21 @@ export function useComposerState() {
 					...prev,
 					attachments: [...prev.attachments, ...attachments],
 				}));
-				bumpUiRevision();
 			},
-			onStateChanged: bumpUiRevision,
+			onStateChanged: bumpRecordingRevision,
 		});
-	}, [recordingState, bumpUiRevision]);
+	}, [recordingState, bumpRecordingRevision]);
 
 	useEffect(() => {
 		return () => {
 			stopComposerRecordingTracks(recordingState);
+			releasePendingAttachmentPreviews(latestAttachmentsRef.current);
 		};
 	}, [recordingState]);
 
 	return {
-		uiRevision,
 		draftState,
 		recordingState,
-		bumpUiRevision,
 		clearDraft,
 		setDraftContent,
 		setTagDraft,

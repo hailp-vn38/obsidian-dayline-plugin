@@ -1,4 +1,8 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, {
+	useCallback,
+	useMemo,
+	useState,
+} from "react";
 import { usePlugin } from "../context/PluginContext";
 import {
 	type TimelineFilterState,
@@ -34,6 +38,7 @@ import { Notice, TFile } from "obsidian";
 import { getErrorMessage } from "../views/timeline/utils/timelineErrors";
 import { useTimelineData } from "../hooks/useTimelineData";
 import { useComposerState } from "../hooks/useComposerState";
+import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import {
 	describeDatePreset,
 	entryCountText,
@@ -43,6 +48,8 @@ import {
 interface TimelineRootProps {
 	refreshRevision: number;
 }
+
+const INITIAL_VISIBLE_ENTRY_LIMIT = 200;
 
 function createInitialFilterState(): TimelineFilterState {
 	const today = formatDateForFile(getNow());
@@ -98,8 +105,8 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 }) => {
 	const { plugin } = usePlugin();
 	const language = plugin.settings.language;
+	const indexStatus = plugin.timelineIndex.getStatus();
 	const {
-		uiRevision,
 		draftState,
 		recordingState,
 		clearDraft,
@@ -123,6 +130,37 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 	const [calendarMonth, setCalendarMonth] = useState(() =>
 		formatDateForFile(getNow()).slice(0, 7),
 	);
+	const debouncedSearchTerm = useDebouncedValue(filters.searchTerm, 150);
+	const timelineFilters = useMemo<TimelineFilterState>(
+		() => ({
+			searchTerm: debouncedSearchTerm,
+			selectedTag: filters.selectedTag,
+			sourceMode: filters.sourceMode,
+			datePreset: filters.datePreset,
+			customDate: filters.customDate,
+			customEndDate: filters.customEndDate,
+		}),
+		[
+			debouncedSearchTerm,
+			filters.customDate,
+			filters.customEndDate,
+			filters.datePreset,
+			filters.selectedTag,
+			filters.sourceMode,
+		],
+	);
+	const filterKey = useMemo(
+		() => JSON.stringify(timelineFilters),
+		[timelineFilters],
+	);
+	const [visibleEntryWindow, setVisibleEntryWindow] = useState({
+		filterKey,
+		limit: INITIAL_VISIBLE_ENTRY_LIMIT,
+	});
+	const visibleEntryLimit =
+		visibleEntryWindow.filterKey === filterKey
+			? visibleEntryWindow.limit
+			: INITIAL_VISIBLE_ENTRY_LIMIT;
 	const activeSourceFile = plugin.app.workspace.getActiveFile();
 	const currentSourcePath = activeSourceFile?.path ?? "";
 	const currentSourceLabel = activeSourceFile?.basename ?? "";
@@ -135,11 +173,14 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 		filteredItems,
 		activeDate,
 	} = useTimelineData({
-		filters,
+		filters: timelineFilters,
 		refreshRevision,
-		uiRevision,
 		currentSourcePath,
 	});
+	const visibleItems = useMemo(
+		() => filteredItems.slice(0, visibleEntryLimit),
+		[filteredItems, visibleEntryLimit],
+	);
 
 	const entryActions = useMemo(
 		() => createTimelineEntryActions({ plugin }),
@@ -285,8 +326,7 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 				getNow(),
 				inputs,
 			);
-			await plugin.timelineIndex.refreshFile(result.file);
-			await plugin.refreshTimelineViews();
+			await plugin.refreshTimelineFile(result.file);
 
 			new Notice(t(language, "notice.checkInCreated"));
 			setActivePanel(null);
@@ -335,12 +375,23 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 				const sourceFile =
 					plugin.app.vault.getAbstractFileByPath(item.sourcePath);
 				if (sourceFile instanceof TFile) {
-					await plugin.timelineIndex.refreshFile(sourceFile);
-					await plugin.refreshTimelineViews();
+					await plugin.refreshTimelineFile(sourceFile);
 				}
 			}
 		},
 		[plugin],
+	);
+	const handleOpenSourceFromList = useCallback(
+		(item: TimelineIndexItem) => {
+			void handleOpenLinkedSource(item);
+		},
+		[handleOpenLinkedSource],
+	);
+	const handleTaskToggleFromList = useCallback(
+		(item: TimelineIndexItem, taskIndex: number, checked: boolean) => {
+			void handleTaskToggle(item, taskIndex, checked);
+		},
+		[handleTaskToggle],
 	);
 
 	const rootStyle = {
@@ -457,36 +508,55 @@ export const TimelineRoot: React.FC<TimelineRootProps> = ({
 					{entryCountText(language, filteredItems.length)}
 				</div>
 
-				{filteredItems.length === 0 ? (
-					<TimelineEmptyState
-						language={language}
-						hasTimelineEntries={allItems.length > 0}
-						isCurrentSourceFilter={filters.sourceMode === "current"}
-						onCreateCheckIn={handleCreateToggle}
-					/>
-				) : (
-					<TimelineList
-						items={filteredItems}
-						today={today}
-						language={language}
-						selectedTag={filters.selectedTag}
-						renderMarkdown={
-							plugin.settings.renderTimelineContentMarkdown
-						}
-						showLinkedSourcePreview={
-							plugin.settings.showLinkedSourcePreview
-						}
-						refreshRevision={refreshRevision}
-						onTagToggle={handleTagToggle}
-						onOpenSource={(item) => {
-							void handleOpenLinkedSource(item);
-						}}
-						onOpenMenu={handleOpenMenu}
-						onTaskToggle={(item, taskIndex, checked) => {
-							void handleTaskToggle(item, taskIndex, checked);
-						}}
-					/>
-				)}
+					{(indexStatus === "idle" || indexStatus === "loading") &&
+					allItems.length === 0 ? (
+						<div className="timeline-empty-state">
+							{t(language, "timeline.loading")}
+						</div>
+					) : indexStatus === "error" && allItems.length === 0 ? (
+						<div className="timeline-warning-banner">
+							{t(language, "timeline.loadFailed")}
+						</div>
+					) : filteredItems.length === 0 ? (
+						<TimelineEmptyState
+							language={language}
+							hasTimelineEntries={allItems.length > 0}
+							isCurrentSourceFilter={filters.sourceMode === "current"}
+							onCreateCheckIn={handleCreateToggle}
+						/>
+					) : (
+						<TimelineList
+							items={visibleItems}
+							today={today}
+							language={language}
+							selectedTag={filters.selectedTag}
+							renderMarkdown={
+								plugin.settings.renderTimelineContentMarkdown
+							}
+							showLinkedSourcePreview={
+								plugin.settings.showLinkedSourcePreview
+							}
+							onTagToggle={handleTagToggle}
+							onOpenSource={handleOpenSourceFromList}
+							onOpenMenu={handleOpenMenu}
+							onTaskToggle={handleTaskToggleFromList}
+						/>
+					)}
+					{filteredItems.length > visibleItems.length && (
+						<button
+							type="button"
+							className="mod-cta timeline-load-more"
+							onClick={() => {
+								setVisibleEntryWindow({
+									filterKey,
+									limit:
+										visibleEntryLimit + INITIAL_VISIBLE_ENTRY_LIMIT,
+								});
+							}}
+						>
+							{t(language, "timeline.loadMore")}
+						</button>
+					)}
 			</div>
 		</div>
 	);

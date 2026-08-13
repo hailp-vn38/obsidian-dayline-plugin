@@ -1214,6 +1214,11 @@ input.timeline-composer-tag-input:focus-visible {
 	color: var(--text-muted);
 }
 
+.timeline-load-more {
+	align-self: center;
+	margin: 8px 0 4px;
+}
+
 .timeline-empty-state {
 	display: flex;
 	flex-direction: column;

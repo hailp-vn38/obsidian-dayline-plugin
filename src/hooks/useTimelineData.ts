@@ -12,19 +12,16 @@ import { useTags } from "./useTags";
 interface UseTimelineDataOptions {
 	filters: TimelineFilterState;
 	refreshRevision: number;
-	uiRevision: number;
 	currentSourcePath: string;
 }
 
 export function useTimelineData({
 	filters,
 	refreshRevision,
-	uiRevision,
 	currentSourcePath,
 }: UseTimelineDataOptions) {
 	const { plugin } = usePlugin();
 	void refreshRevision;
-	void uiRevision;
 
 	const allItems = plugin.timelineIndex.getAll();
 	const availableTags = useTags();
